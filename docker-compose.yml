@@ -81,12 +81,13 @@ services:
       - "3306:3306" # like in production, mysql should be connectable through "host.docker.internal:host-gateway"
                     # this mirrors a mysql service running locally on host machine
 
-# TODO: Mount test data and test volume
   mongodb-dep-test:
     container_name: mongodb-dep-test
     image: "mongo:4.4.12"
     volumes:
       - mongodb-data:/data/db
+      - ./deploymentTesting/mongodb/:/docker-entrypoint-initdb.d # mount scripts location
+      - ./deploymentTesting/mongodb/data/:/tmp/data              # mount test data location
     expose:
       - "27017"
     networks:
