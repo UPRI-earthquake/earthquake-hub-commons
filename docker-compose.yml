@@ -75,7 +75,7 @@ services:
       MYSQL_DATABASE: ${MYSQL_NAME}
     volumes:
       # init db contents by binding sample seiscomp data from host into docker-entrypoint-initdb.d
-      - ./deploymentTesting/mysqlData/seiscompDB.sql:/docker-entrypoint-initdb.d/seiscompDB.sql
+      - ./deploymentTesting/mysql/data/seiscompDB.sql:/docker-entrypoint-initdb.d/seiscompDB.sql
     network_mode: bridge # make sure to use 172.17.0.0/24 subnet (default docker0 network)
     ports:
       - "3306:3306" # like in production, mysql should be connectable through "host.docker.internal:host-gateway"
