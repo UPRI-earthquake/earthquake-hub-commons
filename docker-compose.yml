@@ -51,6 +51,7 @@ services:
 #      context: .
 #      dockerfile: Dockerfile
     image: "earthquake-hub-backend:2.0" # must be available locally or on a container registry
+    env_file: .dep-test.env
     depends_on:
       - "mysql-dep-test"
       - "mongodb-dep-test"
@@ -69,12 +70,13 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: yes
-      MYSQL_USER: ${MYSQL_USER} # will automatically be replaced by values in .env in the same dir
+      MYSQL_USER: ${MYSQL_USER} # will automatically be replaced by values --env-file (.env by default)
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_NAME}
     volumes:
       # init db contents by binding sample seiscomp data from host into docker-entrypoint-initdb.d
       - ./deploymentTesting/mysqlData/seiscompDB.sql:/docker-entrypoint-initdb.d/seiscompDB.sql
+    network_mode: bridge # make sure to use 172.17.0.0/24 subnet (default docker0 network)
     ports:
       - "3306:3306" # like in production, mysql should be connectable through "host.docker.internal:host-gateway"
                     # this mirrors a mysql service running locally on host machine
