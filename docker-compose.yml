@@ -1,0 +1,159 @@
+version: '3.9'
+
+services:
+#  nginx-proxy-dep-test:
+#    container_name: nginx-proxy-dep-test
+#    image: "nginx:stable"
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    volumes:
+#      - ./https_data/nginx:/etc/nginx/conf.d:ro       # Mount read-only access to nginx conf file
+#      - ./https_data/certbot/www:/var/www/certbot:ro  # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
+#      - ./https_data/certbot/conf:/etc/nginx/ssl:ro   # Certbot will write the certs into this, used by nginx as ssl_certificate and ssl_certificate_key
+                                                      #   under the directory /etc/nginx/live/<domain-name>/<fullchain-or-privkey>.pem;
+                                                      # Run the following command to renew the certificates:
+                                                      #   docker compose run --rm certbot renew
+# For now, do not use certbot for local testing
+#  certbot:
+#    image: certbot/certbot
+#    volumes:
+#      - ./https_data/certbot/conf:/etc/letsencrypt:rw
+#      - ./https_data/certbot/www:/var/www/certbot:rw
+
+#  earthquake-hub-frontend-dep-test:
+#    container_name: earthquake-hub-frontend-dep-test
+##    build:
+##      context: ../front-end
+##      dockerfile: Dockerfile
+#    image: "earthquake-hub-frontend:2.0"
+#    depends_on:
+#      - "earthquake-hub-backend-dep-test"
+#    expose:
+#      - "3000"
+#    extra_hosts:
+#       - "host.docker.internal:host-gateway"
+#    networks:
+#      app-network:
+#        ipv4_address: 172.22.0.2
+
+  earthquake-hub-backend-dep-test:
+    container_name: earthquake-hub-backend-dep-test
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: "earthquake-hub-backend:2.0"
+    depends_on:
+      - "mongodb-dep-test"
+      - "redis-dep-test"
+    expose:
+      - "5000"
+    extra_hosts:
+       - "host.docker.internal:host-gateway"
+    networks:
+      app-network:
+        ipv4_address: 172.22.0.3
+
+  mysql-dep-test:
+    container_name: mysql-dep-test
+    image: "mysql:8.0.32"
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: yes
+      MYSQL_USER: ${MYSQL_USER} # will automatically be replaced by values in .env in the same dir
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_NAME}
+    volumes:
+      # init db contents by binding sample seiscomp data from host into docker-entrypoint-initdb.d
+      - ./deploymentTesting/mysqlData/seiscompDB.sql:/docker-entrypoint-initdb.d/seiscompDB.sql
+    ports:
+      - "3306:3306" # like in production, mysql should be connectable through "host.docker.internal:host-gateway"
+                    # this mirrors a mysql service running locally on host machine
+
+# TODO: Mount test data and test volume
+  mongodb-dep-test:
+    container_name: mongodb-dep-test
+    image: "mongo:4.4.12"
+    volumes:
+      - mongodb-data:/data/db
+    expose:
+      - "27017"
+    networks:
+      app-network:
+        ipv4_address: 172.22.0.4
+
+  redis-dep-test:
+    container_name: redis-dep-test
+    image: "redis:latest"
+    expose:
+      - "6379"
+    networks:
+      app-network:
+        ipv4_address: 172.22.0.5
+
+# TODO: Add admin-frontend
+# TODO: Add admin-backend
+
+# Geoserve is used to convert (long, lat) to city-names.
+# The images are available as bare-metal builds in the server
+# Let's not use it for local testing for now as building these
+# images takes a while
+#
+#  geoserve-db:
+#    build:
+#      context: ../hazdev-geoserve-ws
+#      dockerfile: Dockerfile-db
+#    image: "usgs/hazdev-geoserve-db:latest"
+#    environment:
+#      - DATALOAD_DIR=/tmp/dataload
+#      - DB_ADMIN_USER=postgres
+#      - DB_ADMIN_PASSWORD=sysop-admin-postgres
+#      - DB_LOAD_TYPE=incremental
+#      - DB_NAME=earthquake
+#      - DB_USER=web
+#      - DB_PASS=sysop-postgres
+#      - DB_SCHEMA=geoserve
+#      - DB_ADMIN_DSN=pgsql:dbname=earthquake
+#      - PGDATA=/var/lib/postgresqsl/data/pgdata
+#      - POSTGRES_PASSWORD=sysop-admin-postgres
+#    volumes:
+#      # volume to store downloaded data files
+#      - ../hazdev-geoserve-ws/data/dataload:/tmp/dataload
+#      # volume to store database data files
+#      - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
+#    networks:
+#      app-network:
+#        ipv4_address: 172.22.0.6
+#
+#  geoserve-ws:
+#    build:
+#      context: ../hazdev-geoserve-ws
+#      dockerfile: Dockerfile-ws
+#    image: "usgs/hazdev-geoserve-ws:latest"
+#    environment:
+#      - DB_DSN=pgsql:host=geoserve-db;port=5432;dbname=earthquake
+#      - DB_USER=web
+#      - DB_PASS=sysop-postgres
+#      - DB_SCHEMA=geoserve
+#    volumes:
+#      # volumes for local dev
+#      - ../hazdev-geoserve-ws/src/htdocs:/var/www/apps/hazdev-geoserve-ws/htdocs
+#      - ../hazdev-geoserve-ws/src/lib:/var/www/apps/hazdev-geoserve-ws/lib
+#    expose:
+#      - "80"
+#    networks:
+#      app-network:
+#        ipv4_address: 172.22.0.7
+
+volumes:
+  mongodb-data:
+
+networks:
+  app-network:
+    name: earthquake-hub
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+
