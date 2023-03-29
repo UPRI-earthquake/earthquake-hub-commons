@@ -1,19 +1,27 @@
 version: '3.9'
 
 services:
-#  nginx-proxy-dep-test:
-#    container_name: nginx-proxy-dep-test
-#    image: "nginx:stable"
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    volumes:
-#      - ./https_data/nginx:/etc/nginx/conf.d:ro       # Mount read-only access to nginx conf file
-#      - ./https_data/certbot/www:/var/www/certbot:ro  # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
-#      - ./https_data/certbot/conf:/etc/nginx/ssl:ro   # Certbot will write the certs into this, used by nginx as ssl_certificate and ssl_certificate_key
-                                                      #   under the directory /etc/nginx/live/<domain-name>/<fullchain-or-privkey>.pem;
-                                                      # Run the following command to renew the certificates:
-                                                      #   docker compose run --rm certbot renew
+  nginx-proxy-dep-test:
+    container_name: nginx-proxy-dep-test
+    image: "nginx:stable"
+    depends_on:
+      - "earthquake-hub-backend-dep-test"
+      - "earthquake-hub-frontend-dep-test"
+    networks:
+      app-network:
+        ipv4_address: 172.22.0.10
+    ports:  # expose nginx ports to host
+      - "80:80"
+      - "443:443"
+    extra_hosts:
+       - "host.docker.internal:host-gateway"
+    volumes:
+      - ./https_data/nginx.dep-test.d:/etc/nginx/conf.d:ro       # Mount read-only access to nginx conf file. TODO: This should change on production compose file
+      - ./https_data/certbot/www:/var/www/certbot:ro           # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
+      - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key
+                                                               #   under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
+                                                               # Run the following command to renew the certificates:
+                                                               #   docker compose run --rm certbot renew
 # For now, do not use certbot for local testing
 #  certbot:
 #    image: certbot/certbot
@@ -21,29 +29,30 @@ services:
 #      - ./https_data/certbot/conf:/etc/letsencrypt:rw
 #      - ./https_data/certbot/www:/var/www/certbot:rw
 
-#  earthquake-hub-frontend-dep-test:
-#    container_name: earthquake-hub-frontend-dep-test
-##    build:
-##      context: ../front-end
-##      dockerfile: Dockerfile
-#    image: "earthquake-hub-frontend:2.0"
-#    depends_on:
-#      - "earthquake-hub-backend-dep-test"
-#    expose:
-#      - "3000"
-#    extra_hosts:
-#       - "host.docker.internal:host-gateway"
-#    networks:
-#      app-network:
-#        ipv4_address: 172.22.0.2
+  earthquake-hub-frontend-dep-test:
+    container_name: earthquake-hub-frontend-dep-test
+#    build:
+#      context: ../front-end
+#      dockerfile: Dockerfile
+    image: "earthquake-hub-frontend:2.0" # must be available locally or on a container registry
+    depends_on:
+      - "earthquake-hub-backend-dep-test"
+    expose:
+      - "3000"
+    extra_hosts:
+       - "host.docker.internal:host-gateway"
+    networks:
+      app-network:
+        ipv4_address: 172.22.0.2
 
   earthquake-hub-backend-dep-test:
     container_name: earthquake-hub-backend-dep-test
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: "earthquake-hub-backend:2.0"
+    image: "earthquake-hub-backend:2.0" # must be available locally or on a container registry
     depends_on:
+      - "mysql-dep-test"
       - "mongodb-dep-test"
       - "redis-dep-test"
     expose:
