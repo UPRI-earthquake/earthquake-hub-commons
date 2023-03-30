@@ -31,10 +31,7 @@ services:
 
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
-#    build:
-#      context: ../front-end
-#      dockerfile: Dockerfile
-    image: "earthquake-hub-frontend:2.0" # must be available locally or on a container registry
+    image: "ghcr.io/prokorpio/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
@@ -47,15 +44,34 @@ services:
 
   earthquake-hub-backend-dep-test:
     container_name: earthquake-hub-backend-dep-test
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-    image: "earthquake-hub-backend:2.0" # must be available locally or on a container registry
-    env_file: .dep-test.env
+    environment: # load env vars from docker compose --env-file
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_NAME: ${MONGO_NAME}
+
+      # mysql db for seiscomp
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_NAME: ${MYSQL_NAME}
+
+      # realtime comms with seiscomp
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+
+      # Granular reverse-geolocation
+      GEOSERVE_HOST: ${GEOSERVE_HOST}
+      GEOSERVE_PORT: ${GEOSERVE_PORT}
+
+      # production host domain (and for deployment testing)
+      CLIENT_PROD_HOST: ${CLIENT_PROD_HOST}
+      BACKEND_PROD_HOST: ${BACKEND_PROD_HOST}
+      BACKEND_PROD_PORT: ${BACKEND_PROD_PORT}
     depends_on:
       - "mysql-dep-test"
       - "mongodb-dep-test"
       - "redis-dep-test"
+    image: "ghcr.io/prokorpio/earthquake-hub-backend:1.0.0"
     expose:
       - "5000"
     extra_hosts:
