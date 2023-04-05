@@ -101,9 +101,9 @@ services:
     container_name: mongodb-dep-test
     image: "mongo:4.4.12"
     volumes:
-      - mongodb-data:/data/db
-      - ./deploymentTesting/mongodb/:/docker-entrypoint-initdb.d # mount scripts location
-      - ./deploymentTesting/mongodb/data/:/tmp/data              # mount test data location
+      # - mongodb-data:/data/db
+      - ./deploymentTesting/mongodb:/docker-entrypoint-initdb.d # mount scripts location
+      - ./deploymentTesting/mongodb/data:/tmp/data              # mount test data location
     expose:
       - "27017"
     networks:

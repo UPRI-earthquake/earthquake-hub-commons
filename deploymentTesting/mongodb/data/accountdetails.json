@@ -1,0 +1,26 @@
+[
+    {
+        "_id": {
+            "$oid": "64103bdd9663ed87a83cb236"
+        },
+        "account": {
+            "$oid": "64103bdd9663ed87a83cb234"
+        },
+        "accountStatus": "Inactive",
+        "devicesCount": 0,
+        "devices": [],
+        "__v": 0
+    },
+    {
+        "_id": {
+            "$oid": "64103c019663ed87a83cb23c"
+        },
+        "account": {
+            "$oid": "64103c019663ed87a83cb23a"
+        },
+        "accountStatus": "Inactive",
+        "devicesCount": 0,
+        "devices": [],
+        "__v": 0
+    }
+]
