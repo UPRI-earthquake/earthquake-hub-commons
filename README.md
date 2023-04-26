@@ -26,4 +26,11 @@ Take note:
 4. Note that the creation of self-signed SSL certificate is only for testing. For actual deployment, [usage of certbot](https://mindsers.blog/post/https-using-nginx-certbot-docker/) will replace this. (TODO: create deployment version of docker-compose.yml)
 
 ## Test Data
-Test data for the DB containers: `mongo` and `mysql`, are correspondingly available in [deploymentTesting/](deploymentTesting/). A [bash script](deploymentTesting/mongodb/import_data.sh) can be used to import the data from the json files into the persistent volume of the running mongodb container. Note that the volume may then be used by other repositories, so that data can be shared regardless of which repository is run.  
+Test data for the DB containers: `mongo` and `mysql`, are correspondingly available in [deploymentTesting/](deploymentTesting/). A [bash script](deploymentTesting/mongodb/import_data.sh) can be used to import the data from the json files into the persistent volume of the running mongodb container. Note that the volume may then be used by other repositories, so that data can be shared regardless of which repository is run.
+
+Take note:
+1. Prior to running the compose file, make sure to create the volume via:
+```bash
+docker volume create earthquake-hub-mongodb-data
+```
+2. Before executing the bash script, make sure that the corresponding container (see CONTAINER_NAME in script) is running.
