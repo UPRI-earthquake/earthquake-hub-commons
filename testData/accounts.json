@@ -1,0 +1,65 @@
+[
+  {
+    "_id": {
+      "$oid": "64488a777592efbdea4ec3ac"
+    },
+    "username": "pdbito",
+    "email": "pdbito@gmail.com",
+    "password": "$2a$10$Bsv4DxHjV496Vusilung7.De67Hcb.NXLicLhF0JKoLRVvM5ZMD.S",
+    "accountStatus": "Inactive",
+    "devicesCount": {
+      "$numberInt": "1"
+    },
+    "devices": [
+      {
+        "$oid": "6449e430d31fe0a1e08d2135"
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "6448e3576ff056c332327675"
+    },
+    "username": "percyjackson3",
+    "email": "percyjackson3@gmail.com",
+    "password": "$2a$10$CBG8aGDIzC9oyGDzxE9yP.CNR0sqChbNk0L/bmVQ02.a5a/.QX5WG",
+    "accountStatus": "Inactive",
+    "devicesCount": {
+      "$numberInt": "0"
+    },
+    "devices": []
+  },
+  {
+    "_id": {
+      "$oid": "644a074085fd194c79a38135"
+    },
+    "username": "jasongrace",
+    "email": "jasongrace@gmail.com",
+    "password": "$2a$10$R/ikBOoLtnPjh3/0pj43ju3EP8iuCVCsNDtRbWolSR4okHj4khaVK",
+    "accountStatus": "Inactive",
+    "devicesCount": {
+      "$numberInt": "0"
+    },
+    "devices": []
+  },
+  {
+    "_id": {
+      "$oid": "644a074e85fd194c79a38137"
+    },
+    "username": "peterpiper",
+    "email": "peterpipergmail.com",
+    "password": "$2a$10$ZC0x35CdbgGb7R34ytahVeyt0gSaSDnOkBBifTkSXDJA87G7kFkyG",
+    "accountStatus": "Inactive",
+    "devicesCount": {
+      "$numberInt": "2"
+    },
+    "devices": [
+      {
+        "$oid": "644a09abd1b8d9f621adf3f5"
+      },
+      {
+        "$oid": "644a09efd1b8d9f621adf3f8"
+      }
+    ]
+  }
+]

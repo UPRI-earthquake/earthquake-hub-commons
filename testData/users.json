@@ -1,0 +1,12 @@
+[
+  {
+    "_id": {
+      "$oid": "640002831f887c52eba5c28b"
+    },
+    "username": "admin",
+    "firstName": "Paolo Daniel",
+    "lastName": "Bito",
+    "email": "admin@gmail.com",
+    "password": "$2a$10$1ECVEulDPaI0zUjSFOW0zeSxJ4sat9YNaJe2oM5w2JEPPKS4k1Nke"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "_id": {
+      "$oid": "6449e430d31fe0a1e08d2135"
+    },
+    "streamId": "test stream id 1",
+    "network": "test network 1",
+    "station": "test station 1",
+    "location": "test location 1",
+    "elevation": "test elevation 1",
+    "activity": "test actvity 1",
+    "lastConnectedTime": "test time 1"
+  },
+  {
+    "_id": {
+      "$oid": "644a09abd1b8d9f621adf3f5"
+    },
+    "streamId": "test stream id 10",
+    "network": "test network 10",
+    "station": "test station 10",
+    "location": "test location 10",
+    "elevation": "test elevation 10",
+    "activity": "test actvity 10",
+    "lastConnectedTime": "test time 10"
+  },
+  {
+    "_id": {
+      "$oid": "644a09efd1b8d9f621adf3f8"
+    },
+    "streamId": "test stream id 100",
+    "network": "test network 100",
+    "station": "test station 100",
+    "location": "test location 100",
+    "elevation": "test elevation 100",
+    "activity": "test actvity 100",
+    "lastConnectedTime": "test time 100"
+  }
+]
