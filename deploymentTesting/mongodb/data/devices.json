@@ -1,0 +1,10 @@
+[
+    {
+        "_id": {
+            "$oid": "6424270bb5d365f0787326d9"
+        },
+        "macAddress": "test",
+        "status": "not connected",
+        "__v": 0
+    }
+]

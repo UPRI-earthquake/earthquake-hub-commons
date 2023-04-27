@@ -99,11 +99,11 @@ services:
 
   mongodb-dep-test:
     container_name: mongodb-dep-test
-    image: "mongo:4.4.12"
+    image: "mongo:5.0"
     volumes:
-      - mongodb-data:/data/db
-      - ./deploymentTesting/mongodb/:/docker-entrypoint-initdb.d # mount scripts location
-      - ./deploymentTesting/mongodb/data/:/tmp/data              # mount test data location
+      - type: volume
+        source: earthquake-hub-mongodb-data
+        target: /data/db
     expose:
       - "27017"
     networks:
@@ -174,7 +174,9 @@ services:
 #        ipv4_address: 172.22.0.7
 
 volumes:
-  mongodb-data:
+  earthquake-hub-mongodb-data:
+    external: true # same volume used by other containers
+    name: earthquake-hub-mongodb-data
 
 networks:
   app-network:
