@@ -31,7 +31,7 @@ services:
 
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
-    image: "ghcr.io/prokorpio/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
@@ -71,7 +71,7 @@ services:
       - "mysql-dep-test"
       - "mongodb-dep-test"
       - "redis-dep-test"
-    image: "ghcr.io/prokorpio/earthquake-hub-backend:1.0.0"
+    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:1.0.0"
     expose:
       - "5000"
     extra_hosts:
