@@ -1,4 +1,5 @@
-[{
+[
+  {
     "_id": {
       "$oid": "6450c931ca93380137ba6d26"
     },
@@ -6,6 +7,9 @@
     "email": "jcreyes@gmail.com",
     "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
     "accountStatus": "Active",
+    "roles": [
+      "citizen"
+    ],
     "devices": [
       {
         "$oid": "6450c9fbca93380137ba6d28"
@@ -17,7 +21,8 @@
         "$oid": "6450cac6ca93380137ba6d2a"
       }
     ]
-  },{
+  },
+  {
     "_id": {
       "$oid": "6450cc90ca93380137ba6d4f"
     },
@@ -25,12 +30,16 @@
     "email": "jeffsanchez@gmail.com",
     "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
     "accountStatus": "Active",
+    "roles": [
+      "citizen"
+    ],
     "devices": [
       {
         "$oid": "6450cae1ca93380137ba6d2c"
       }
     ]
-  },{
+  },
+  {
     "_id": {
       "$oid": "6450cca2ca93380137ba6d50"
     },
@@ -38,9 +47,13 @@
     "email": "jccabang@gmail.com",
     "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
     "accountStatus": "Active",
+    "roles": [
+      "citizen"
+    ],
     "devices": [
       {
         "$oid": "6450caf7ca93380137ba6d2d"
       }
     ]
-  }]
+  }
+]
