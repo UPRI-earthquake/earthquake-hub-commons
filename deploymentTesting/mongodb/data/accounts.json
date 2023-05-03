@@ -24,7 +24,7 @@
   },
   {
     "_id": {
-      "$oid": "6450cc90ca93380137ba6d4f"
+      "$oid": "6450cc90ca93380137ba6dff"
     },
     "username": "admin",
     "email": "admin@gmail.com",
@@ -33,11 +33,7 @@
     "roles": [
       "admin"
     ],
-    "devices": [
-      {
-        "$oid": "6450cae1ca93380137ba6d2c"
-      }
-    ]
+    "devices": []
   },
   {
     "_id": {
@@ -58,7 +54,7 @@
   },
   {
     "_id": {
-      "$oid": "6450cca2ca93380137ba6d50"
+      "$oid": "6450cca2ca93380137ba6d5f"
     },
     "username": "brgy",
     "email": "brgy@gmail.com",
