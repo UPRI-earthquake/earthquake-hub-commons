@@ -31,13 +31,6 @@ docker exec -i "$CONTAINER_NAME" mongoimport \
 
 docker exec -i "$CONTAINER_NAME" mongoimport \
   --db "$DB_NAME" \
-  --collection "accountdetails" \
-  --jsonArray \
-  --drop \
-  < "$PATH_TO_JSON_FILES/accountdetails.json"
-
-docker exec -i "$CONTAINER_NAME" mongoimport \
-  --db "$DB_NAME" \
   --collection "devices" \
   --jsonArray \
   --drop \
