@@ -8,7 +8,8 @@
     "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
     "accountStatus": "Active",
     "roles": [
-      "citizen"
+      "citizen",
+      "sensor"
     ],
     "devices": [
       {
@@ -39,11 +40,12 @@
     "_id": {
       "$oid": "6450cca2ca93380137ba6d50"
     },
-    "username": "sensor",
-    "email": "sensor@gmail.com",
+    "username": "citizen-1-device",
+    "email": "citizen-1-device@gmail.com",
     "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
     "accountStatus": "Active",
     "roles": [
+      "citizen",
       "sensor"
     ],
     "devices": [
