@@ -3,9 +3,9 @@
     "_id": {
       "$oid": "6450c931ca93380137ba6d26"
     },
-    "username": "jcreyes",
-    "email": "jcreyes@gmail.com",
-    "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
+    "username": "citizen",
+    "email": "citizen@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
     "accountStatus": "Active",
     "roles": [
       "citizen"
@@ -26,12 +26,12 @@
     "_id": {
       "$oid": "6450cc90ca93380137ba6d4f"
     },
-    "username": "jeffsanchez21",
-    "email": "jeffsanchez@gmail.com",
-    "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
+    "username": "admin",
+    "email": "admin@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
     "accountStatus": "Active",
     "roles": [
-      "citizen"
+      "admin"
     ],
     "devices": [
       {
@@ -43,12 +43,29 @@
     "_id": {
       "$oid": "6450cca2ca93380137ba6d50"
     },
-    "username": "jccabang",
-    "email": "jccabang@gmail.com",
-    "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
+    "username": "sensor",
+    "email": "sensor@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
     "accountStatus": "Active",
     "roles": [
-      "citizen"
+      "sensor"
+    ],
+    "devices": [
+      {
+        "$oid": "6450caf7ca93380137ba6d2d"
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "6450cca2ca93380137ba6d50"
+    },
+    "username": "brgy",
+    "email": "brgy@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
+    "accountStatus": "Active",
+    "roles": [
+      "brgy"
     ],
     "devices": [
       {
