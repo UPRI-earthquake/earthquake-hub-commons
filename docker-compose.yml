@@ -9,7 +9,7 @@ services:
       - "earthquake-hub-frontend-dep-test"
     networks:
       app-network:
-        ipv4_address: 172.22.0.10
+        ipv4_address: 172.21.0.10
     ports:  # expose nginx ports to host
       - "80:80"
       - "443:443"
@@ -40,7 +40,7 @@ services:
        - "host.docker.internal:host-gateway"
     networks:
       app-network:
-        ipv4_address: 172.22.0.2
+        ipv4_address: 172.21.0.2
 
   earthquake-hub-backend-dep-test:
     container_name: earthquake-hub-backend-dep-test
@@ -78,7 +78,7 @@ services:
        - "host.docker.internal:host-gateway"
     networks:
       app-network:
-        ipv4_address: 172.22.0.3
+        ipv4_address: 172.21.0.3
 
   mysql-dep-test:
     container_name: mysql-dep-test
@@ -108,7 +108,7 @@ services:
       - "27017"
     networks:
       app-network:
-        ipv4_address: 172.22.0.4
+        ipv4_address: 172.21.0.4
 
   redis-dep-test:
     container_name: redis-dep-test
@@ -117,7 +117,7 @@ services:
       - "6379"
     networks:
       app-network:
-        ipv4_address: 172.22.0.5
+        ipv4_address: 172.21.0.5
 
 # TODO: Add admin-frontend
 # TODO: Add admin-backend
@@ -151,7 +151,7 @@ services:
 #      - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
 #    networks:
 #      app-network:
-#        ipv4_address: 172.22.0.6
+#        ipv4_address: 172.21.0.6
 #
 #  geoserve-ws:
 #    build:
@@ -171,7 +171,7 @@ services:
 #      - "80"
 #    networks:
 #      app-network:
-#        ipv4_address: 172.22.0.7
+#        ipv4_address: 172.21.0.7
 
 volumes:
   earthquake-hub-mongodb-data:
@@ -184,6 +184,6 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.22.0.0/16
+        - subnet: 172.21.0.0/16
 
 

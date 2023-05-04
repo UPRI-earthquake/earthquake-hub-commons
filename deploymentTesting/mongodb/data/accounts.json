@@ -1,24 +1,74 @@
 [
-    {
-        "_id": {
-            "$oid": "64103bdd9663ed87a83cb234"
-        },
-        "username": "jeffsanchez1",
-        "firstName": "Jeff",
-        "lastName": "Sanchez",
-        "email": "jeffsanchez@gmail.com",
-        "password": "$2a$10$MXStQQPzjgqHlQFPH0L9E.KxW.R4LFzg6m5bVHcgqSmzS59FPF1Ky",
-        "__v": 0
+  {
+    "_id": {
+      "$oid": "6450c931ca93380137ba6d26"
     },
-    {
-        "_id": {
-            "$oid": "64103c019663ed87a83cb23a"
-        },
-        "username": "pdbito",
-        "firstName": "Paolo",
-        "lastName": "Bito",
-        "email": "pdbito@gmail.com",
-        "password": "$2a$10$i/dIadPUKbNgbKI29oOfw.CCn9jmGGRkuQqyu0Pl/irhQ06ntd9RW",
-        "__v": 0
-    }
+    "username": "citizen",
+    "email": "citizen@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
+    "accountStatus": "Active",
+    "roles": [
+      "citizen",
+      "sensor"
+    ],
+    "devices": [
+      {
+        "$oid": "6450c9fbca93380137ba6d28"
+      },
+      {
+        "$oid": "6450cab7ca93380137ba6d29"
+      },
+      {
+        "$oid": "6450cac6ca93380137ba6d2a"
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "6450cc90ca93380137ba6dff"
+    },
+    "username": "admin",
+    "email": "admin@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
+    "accountStatus": "Active",
+    "roles": [
+      "admin"
+    ],
+    "devices": []
+  },
+  {
+    "_id": {
+      "$oid": "6450cca2ca93380137ba6d50"
+    },
+    "username": "citizen-1-device",
+    "email": "citizen-1-device@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
+    "accountStatus": "Active",
+    "roles": [
+      "citizen",
+      "sensor"
+    ],
+    "devices": [
+      {
+        "$oid": "6450caf7ca93380137ba6d2d"
+      }
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "6450cca2ca93380137ba6d5f"
+    },
+    "username": "brgy",
+    "email": "brgy@gmail.com",
+    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
+    "accountStatus": "Active",
+    "roles": [
+      "brgy"
+    ],
+    "devices": [
+      {
+        "$oid": "6450caf7ca93380137ba6d2d"
+      }
+    ]
+  }
 ]

@@ -1,10 +1,73 @@
-[
-    {
-        "_id": {
-            "$oid": "6424270bb5d365f0787326d9"
-        },
-        "macAddress": "test",
-        "status": "not connected",
-        "__v": 0
-    }
-]
+[{
+    "_id": {
+      "$oid": "6450c9fbca93380137ba6d28"
+    },
+    "streamId": "test_stream_id_1",
+    "network": "test_network_1",
+    "station": "test_station_1",
+    "location": "test_location_1",
+    "elevation": "test_elevation_1",
+    "macAddress": "test_mac_address_1",
+    "activity": "test_activity_1",
+    "lastConnectedTime": "00:00:01"
+  },{
+    "_id": {
+      "$oid": "6450cab7ca93380137ba6d29"
+    },
+    "streamId": "test_stream_id_2",
+    "network": "test_network_2",
+    "station": "test_station_2",
+    "location": "test_location_2",
+    "elevation": "test_elevation_2",
+    "macAddress": "test_mac_address_2",
+    "activity": "test_activity_2",
+    "lastConnectedTime": "00:00:02"
+  },{
+    "_id": {
+      "$oid": "6450cac6ca93380137ba6d2a"
+    },
+    "streamId": "test_stream_id_3",
+    "network": "test_network_3",
+    "station": "test_station_3",
+    "location": "test_location_3",
+    "elevation": "test_elevation_3",
+    "macAddress": "test_mac_address_3",
+    "activity": "test_activity_3",
+    "lastConnectedTime": "00:00:03"
+  },{
+    "_id": {
+      "$oid": "6450cad4ca93380137ba6d2b"
+    },
+    "streamId": "test_stream_id_4",
+    "network": "test_network_4",
+    "station": "test_station_4",
+    "location": "test_location_4",
+    "elevation": "test_elevation_4",
+    "macAddress": "test_mac_address_4",
+    "activity": "test_activity_4",
+    "lastConnectedTime": "00:00:04"
+  },{
+    "_id": {
+      "$oid": "6450cae1ca93380137ba6d2c"
+    },
+    "streamId": "test_stream_id_5",
+    "network": "test_network_5",
+    "station": "test_station_5",
+    "location": "test_location_5",
+    "elevation": "test_elevation_5",
+    "macAddress": "test_mac_address_5",
+    "activity": "test_activity_5",
+    "lastConnectedTime": "00:00:05"
+  },{
+    "_id": {
+      "$oid": "6450caf7ca93380137ba6d2d"
+    },
+    "streamId": "test_stream_id_6",
+    "network": "test_network_6",
+    "station": "test_station_6",
+    "location": "test_location_6",
+    "elevation": "test_elevation_6",
+    "macAddress": "test_mac_address_6",
+    "activity": "test_activity_6",
+    "lastConnectedTime": "00:00:06"
+  }]
