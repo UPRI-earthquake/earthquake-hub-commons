@@ -70,6 +70,9 @@ services:
       CLIENT_PROD_HOST: ${CLIENT_PROD_HOST}
       BACKEND_PROD_HOST: ${BACKEND_PROD_HOST}
       BACKEND_PROD_PORT: ${BACKEND_PROD_PORT}
+
+      # jsonwebtoken keys
+      ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
     depends_on:
       - "mysql-dep-test"
       - "mongodb-dep-test"
