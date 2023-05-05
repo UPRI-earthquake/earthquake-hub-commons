@@ -16,7 +16,8 @@ services:
     extra_hosts:
        - "host.docker.internal:host-gateway"
     volumes:
-      - ./https_data/nginx.dep-test.d:/etc/nginx/conf.d:ro       # Mount read-only access to nginx conf file. TODO: This should change on production compose file
+      - ./https_data/nginx.dep-test.d:/etc/nginx/conf.d:ro     # Mount read-only access to nginx conf file. TODO: This should change on production compose file
+                                                               # NOTE: There are multiple nginx conf files in this directory, rename what you want to use into nginx.dep-test.conf.
       - ./https_data/certbot/www:/var/www/certbot:ro           # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
       - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key
                                                                #   under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
@@ -31,7 +32,8 @@ services:
 
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally
+    #image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally (IP addr is localhost)
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend-adride-ip:1.0.0" # same as above but with env file set to adride pc IP addr
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
@@ -45,6 +47,7 @@ services:
   earthquake-hub-backend-dep-test:
     container_name: earthquake-hub-backend-dep-test
     environment: # load env vars from docker compose --env-file
+      MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
@@ -71,7 +74,7 @@ services:
       - "mysql-dep-test"
       - "mongodb-dep-test"
       - "redis-dep-test"
-    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:1.0.0"
+    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:1.0.1"
     expose:
       - "5000"
     extra_hosts:
