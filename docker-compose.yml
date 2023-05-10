@@ -17,7 +17,8 @@ services:
        - "host.docker.internal:host-gateway"
     volumes:
       - ./https_data/nginx.dep-test.d:/etc/nginx/conf.d:ro     # Mount read-only access to nginx conf file. TODO: This should change on production compose file
-                                                               # NOTE: There are multiple nginx conf files in this directory, rename what you want to use into nginx.dep-test.conf.
+                                                               # NOTE: There are multiple nginx conf files in this directory, rename what you want to use into nginx.dep-test.conf. 
+                                                               #       Make sure that only one file has .conf as this is what'll be used by nginx.
       - ./https_data/certbot/www:/var/www/certbot:ro           # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
       - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key
                                                                #   under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
