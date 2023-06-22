@@ -1,0 +1,56 @@
+[{
+  "publicID": "gfz2021rrsa",
+  "OT": {
+    "$date": "2021-09-09T14:39:21.000Z"
+  },
+  "latitude_value": 13.73369312,
+  "longitude_value": 120.5948334,
+  "depth_value": 88.58856201,
+  "magnitude_value": 6.405282352,
+  "type": "M",
+  "text": "Mindoro, Philippines"
+},{
+  "publicID": "gfz2021rrsh",
+  "OT": {
+    "$date": "2021-09-09T14:39:21.000Z"
+  },
+  "latitude_value": 13.8337183,
+  "longitude_value": 120.927124,
+  "depth_value": 97.03096008,
+  "magnitude_value": 5.433079707,
+  "type": "M",
+  "text": "Mindoro, Philippines"
+},{
+  "publicID": "gfz2022eqxh",
+  "OT": {
+    "$date": "2022-03-08T04:04:51.000Z"
+  },
+  "latitude_value": 34.39204025,
+  "longitude_value": -118.6372833,
+  "depth_value": 5,
+  "magnitude_value": 3.481076112,
+  "type": "M",
+  "text": "Southern California"
+},{
+  "publicID": "gfz2022eraf",
+  "OT": {
+    "$date": "2022-03-08T05:34:00.000Z"
+  },
+  "latitude_value": 34.39204025,
+  "longitude_value": -118.6372833,
+  "depth_value": 5,
+  "magnitude_value": 3.481076112,
+  "type": "M",
+  "text": "Southern California"
+},{
+  "publicID": "gfz2022ewmt",
+  "OT": {
+    "$date": "2022-03-11T05:34:34.000Z"
+  },
+  "latitude_value": 35.72388458,
+  "longitude_value": -113.7958069,
+  "depth_value": 5,
+  "magnitude_value": 6.658479493,
+  "type": "M",
+  "text": "Western Arizona"
+}]
