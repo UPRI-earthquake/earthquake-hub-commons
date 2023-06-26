@@ -45,8 +45,22 @@ mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" -D "$DB_NAME" \
   | tail -n +2 > temp.txt
 
 # Convert the tabular output to JSON using a custom script
-awk -F"\t" 'BEGIN{OFS=","; print "["} {print "{\"publicID\":\""$1"\",\"OT\":{\"$date\":\""$2"\"},\"latitude_value\":"$3",\"longitude_value\":"$4",\"depth_value\":"$5",\"magnitude_value\":"$6",\"type\":\""$7"\",\"text\":\""$8"\"},"} END{print "]"}' temp.txt \
-  > "$OUTPUT_FILE"
+# (NR) record number 
+awk -F"\t" '
+  BEGIN{
+    OFS=","
+    print "["
+  }
+  {
+    if (NR > 1) {
+      print ","
+    }
+    print "{\"publicID\":\""$1"\",\"OT\":{\"$date\":\""$2"\"},\"latitude_value\":"$3",\"longitude_value\":"$4",\"depth_value\":"$5",\"magnitude_value\":"$6",\"type\":\""$7"\",\"text\":\""$8"\"}"
+  }
+  END{
+    print "]"
+  }
+' temp.txt > "$OUTPUT_FILE"
 
 # Remove the temporary file
 rm temp.txt
