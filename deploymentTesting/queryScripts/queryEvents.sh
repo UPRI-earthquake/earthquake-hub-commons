@@ -55,7 +55,14 @@ awk -F"\t" '
     if (NR > 1) {
       print ","
     }
-    print "{\"publicID\":\""$1"\",\"OT\":{\"$date\":\""$2"\"},\"latitude_value\":"$3",\"longitude_value\":"$4",\"depth_value\":"$5",\"magnitude_value\":"$6",\"type\":\""$7"\",\"text\":\""$8"\"}"
+    print "{\"publicID\":\"" $1 "\","
+    print " \"OT\":{\"$date\":\"" $2 "\"},"
+    print " \"latitude_value\":" $3 ","
+    print " \"longitude_value\":" $4 ","
+    print " \"depth_value\":" $5 ","
+    print " \"magnitude_value\":" $6 ","
+    print " \"type\":\"" $7 "\","
+    print " \"text\":\"" $8 "\"}"
   }
   END{
     print "]"
