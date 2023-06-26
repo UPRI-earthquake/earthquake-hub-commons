@@ -2,8 +2,8 @@
 
 # Set the MariaDB database connection details
 DB_HOST="localhost"
-DB_USER="jc"
-DB_PASSWORD="1008"
+DB_USER='<CHANGE_THIS_TO_YOUR_MYSQL_USERNAME>'
+DB_PASSWORD='<CHANGE_THIS_TO_YOUR_MYSQL_PASSWORD>'
 DB_NAME="seiscomp"
 
 # Define the output JSON file path
