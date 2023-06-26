@@ -13,7 +13,7 @@ OUTPUT_FILE="./deploymentTesting/mongodb/data/events.json"
 SQL_QUERY=$(cat <<EOF
 select 
   PEvent.publicID, 
-  Origin.time_value as OT, 
+  DATE_FORMAT(Origin.time_value, "%Y-%m-%dT%H:%i:%sZ") as OT, 
   Origin.latitude_value,
   Origin.longitude_value,
   Origin.depth_value,
