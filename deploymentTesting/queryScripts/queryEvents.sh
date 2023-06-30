@@ -1,10 +1,25 @@
 #!/bin/bash
 
-# Set the MariaDB database connection details
-DB_HOST="localhost"
-DB_USER='<CHANGE_THIS_TO_YOUR_MYSQL_USERNAME>'
-DB_PASSWORD='<CHANGE_THIS_TO_YOUR_MYSQL_PASSWORD>'
-DB_NAME="seiscomp"
+# Parse command-line arguments
+while getopts ":u:h:p:n:" opt; do
+  case ${opt} in
+    h) DB_HOST=${OPTARG} ;;
+    u) DB_USER=${OPTARG} ;;
+    p) DB_PASSWORD=${OPTARG} ;;
+    \?) echo "Invalid option: -$OPTARG" >&2
+      exit 1 ;;
+    :) echo "Option -$OPTARG requires an argument." >&2
+      exit 1 ;;
+  esac
+done
+
+# Check if required parameters are provided
+if [[ -z $DB_USER || -z $DB_HOST || -z $DB_PASSWORD ]]; then
+  echo "Usage: $0 -h <DB_HOST> -u <DB_USER> -p <DB_PASSWORD>"
+  exit 1
+fi
+
+DB_NAME='seiscomp'
 
 # Define the output JSON file path
 OUTPUT_FILE="./deploymentTesting/mongodb/data/events.json"
@@ -43,6 +58,13 @@ EOF
 mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" -D "$DB_NAME" \
   -e "$SQL_QUERY" --batch --raw \
   | tail -n +2 > temp.txt
+
+# Check if the SQL query result is empty
+if [[ ! -s temp.txt ]]; then
+  echo "SQL query returns an empty array."
+  rm temp.txt
+  exit 0
+fi
 
 # Convert the tabular output to JSON using a custom script
 # (NR) record number 
