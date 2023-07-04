@@ -36,3 +36,10 @@ docker exec -i "$CONTAINER_NAME" mongoimport \
   --drop \
   < "$PATH_TO_JSON_FILES/devices.json"
 
+docker exec -i "$CONTAINER_NAME" mongoimport \
+  --db "$DB_NAME" \
+  --collection "events" \
+  --jsonArray \
+  --drop \
+  < "$PATH_TO_JSON_FILES/events.json"
+
