@@ -34,7 +34,7 @@ services:
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
     #image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally (IP addr is localhost)
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend-adride-ip:1.0.0" # same as above but with env file set to adride pc IP addr
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest" # same as above but with env file set to adride pc IP addr
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
@@ -72,13 +72,17 @@ services:
       BACKEND_PROD_HOST: ${BACKEND_PROD_HOST}
       BACKEND_PROD_PORT: ${BACKEND_PROD_PORT}
 
+      #ringserver host
+      RINGSERVER_HOST: ${RINGSERVER_HOST}
+      RINGSERVER_PORT: ${RINGSERVER_HOST}
+
       # jsonwebtoken keys
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
     depends_on:
       - "mysql-dep-test"
       - "mongodb-dep-test"
       - "redis-dep-test"
-    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:1.0.1"
+    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
     expose:
       - "5000"
     extra_hosts:
