@@ -74,7 +74,7 @@ services:
 
       #ringserver host
       RINGSERVER_HOST: ${RINGSERVER_HOST}
-      RINGSERVER_PORT: ${RINGSERVER_HOST}
+      RINGSERVER_PORT: ${RINGSERVER_PORT}
 
       # jsonwebtoken keys
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
