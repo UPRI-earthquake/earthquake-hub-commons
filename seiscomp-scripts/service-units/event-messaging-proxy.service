@@ -1,0 +1,24 @@
+# Start service after docker,
+# Don't set restart limit, attempt nonstop
+[Unit]
+Description=Send eq events from seiscomp to redis
+After=docker.service
+StartLimitIntervalSec=0
+
+# Simple type of service, always restart after 1 sec
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=csanchez
+
+# Add environment variables for seiscomp sdk
+Environment="SEISCOMP_ROOT=/home/csanchez/seiscomp"
+Environment="PATH=/home/csanchez/seiscomp/bin:$PATH"
+Environment="LD_LIBRARY_PATH=/home/csanchez/seiscomp/lib:$LD_LIBRARY_PATH"
+Environment="PYTHONPATH=/home/csanchez/seiscomp/lib/python"
+
+ExecStart=/home/csanchez/sc-api/.venv/bin/python3 -u /home/csanchez/sc-api/event_messaging_proxy.py
+
+[Install]
+WantedBy=multi-user.target
