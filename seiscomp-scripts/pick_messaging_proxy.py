@@ -1,6 +1,8 @@
 import sys, traceback, seiscomp.client
-import redis
+import requests
 import json
+
+EARTHQUAKE_HUB_URL = "https://10.196.16.108/api" # Change this to IP address of earthquake-hub-backend
 
 class PickListener(seiscomp.client.Application):
 
@@ -12,17 +14,20 @@ class PickListener(seiscomp.client.Application):
         self.channel = "PICK"
         self.addMessagingSubscription(self.channel)
 
-        # setup Redis pub/sub channel
-        self.publisher = redis.Redis(host='172.22.0.5', port=6379)
-
     def doSomethingWithPick(self, pick):
         try:
-            data = json.dumps({
+            data = {
                 "networkCode": pick.waveformID().networkCode(),
                 "stationCode": pick.waveformID().stationCode(),
-                "timestamp": pick.time().value().seconds() 
-            })
-            self.publisher.publish("SC_"+self.channel, data)
+                "timestamp": pick.time().value().toString("%Y-%m-%dT%H:%M:%S.000Z")
+            }
+
+            response = requests.post(EARTHQUAKE_HUB_URL + "/messaging/new-pick", json=data)
+            if response.status_code == 200:
+                print("Pick sent successfully.")
+            else:
+                print("Failed to send pick:", response.text)
+
             print("networkCode:", pick.waveformID().networkCode())
             print("stationCode:", pick.waveformID().stationCode())
             print("timestamp:", pick.time().value().seconds())

@@ -2,8 +2,10 @@
 
 import sys, traceback, seiscomp.client, seiscomp.datamodel
 import seiscomp.seismology
-import redis
+import requests
 import json
+
+EARTHQUAKE_HUB_URL = "https://10.196.16.108/api" # Change this to IP address of earthquake-hub-backend
 
 class EventListener(seiscomp.client.Application):
 
@@ -15,8 +17,6 @@ class EventListener(seiscomp.client.Application):
         self.setLoadRegionsEnabled(True)
         self.channel = "EVENT"
         self.addMessagingSubscription(self.channel)
-
-        self.publisher = redis.Redis(host='172.22.0.5', port=6379)
 
     def doSomethingWithEvent(self, event, eventType):
         try:
@@ -42,8 +42,7 @@ class EventListener(seiscomp.client.Application):
             method = org.methodID()
 
             # get region of lat,lon
-            reg = seiscomp.seismology.Regions()
-            region = reg.getRegionName(lat, lon)
+            region = seiscomp.seismology.Regions.getRegionName(lat, lon)
 
             # get last modification to this event
             creationInfo = event.creationInfo()
@@ -91,7 +90,8 @@ class EventListener(seiscomp.client.Application):
                 + f'  last_modification: {lastModified}\n' \
                 + '}'
             )
-            data = json.dumps({
+
+            data = {
                 "eventType": eventType,
                 "publicID": event.publicID(),
                 "OT": OT,
@@ -102,12 +102,16 @@ class EventListener(seiscomp.client.Application):
                 "text": region,
                 "method": method,
                 "last_modification": lastModified
-            })
-            self.publisher.publish('SC_'+self.channel, data)
+            }
 
-        except:
-            info = traceback.format_exception(*sys.exc_info())
-            for i in info: sys.stderr.write(i)
+            response = requests.post(EARTHQUAKE_HUB_URL + "/messaging/new-event", json=data)
+            if response.status_code == 200:
+                print("Event added successfully.")
+            else:
+                print("Failed to add event:", response.text)
+
+        except Exception as e:
+            traceback.print_exc()
 
     def updateObject(self, parentID, object):
         # called if an update-object is received
@@ -124,8 +128,8 @@ class EventListener(seiscomp.client.Application):
             self.doSomethingWithEvent(event, 'NEW')
 
     def run(self):
-        # connect to default configured global database 
-        self._dbq = seiscomp.datamodel.DatabaseQuery(self.database()) 
+        # connect to the default configured global database
+        self._dbq = seiscomp.datamodel.DatabaseQuery(self.database())
         print("The EventListener is now running.")
         return seiscomp.client.Application.run(self)
 
