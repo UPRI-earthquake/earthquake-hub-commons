@@ -18,12 +18,12 @@ fi
 
 if [[ ! -d "${ring_dir}" ]]; then
   echo "Initializing ring directory..."
-  cp /app/ring "${ring_dir}"
+  cp -r /app/ring "${ring_dir}"
 fi
 
 if [[ ! -d "${auth_dir}" ]]; then
   echo "Initializing auth directory..."
-  cp /app/auth "${auth_dir}"
+  cp -r /app/auth "${auth_dir}"
 fi
 
 echo "Configuration files and directories initialized."
