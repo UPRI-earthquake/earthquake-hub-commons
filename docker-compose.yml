@@ -100,6 +100,8 @@ services:
     networks:
       app-network:
         ipv4_address: 172.21.0.6
+    ports:
+      - "16000:16000" # make host's 16000 connect to RS's 16000
     volumes:
       - type: bind
         source: ./ringserver-configs
