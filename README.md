@@ -12,7 +12,7 @@ Before spinning up the containers, make sure to:
     1. `server_name` must match the one set for the certificates
     2. `ssl_certificate` and `ssl_certificate_key` should both correspond to the location and filenames of the previously generated `pem` files.
 4. Make sure that ringserver-configs/auth/secret.key exists (contains brgy token to AuthServer).
-5. Make sure that in ringserver-configs/ring.conf, AuthServer is set to the address of AuthServer API address.
+5. Make sure that in ringserver-configs/ring.conf, AuthServer is set to the address of AuthServer API address (ie http://172.21.0.3:5000...). 
 
 Finally, to run all the containers for deployment testing:
 ```bash
