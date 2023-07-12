@@ -91,6 +91,22 @@ services:
       app-network:
         ipv4_address: 172.21.0.3
 
+  ringserver-dep-test:
+    container_name: ringserver-dep-test
+    image: "ghcr.io/upri-earthquake/receiver-ringserver:latest"
+    expose:
+      - "16000"
+      - "18000"
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.6
+    volumes:
+      - type: bind
+        source: ./ringserver-configs
+        target: /app/host-configs
+    user: root
+    entrypoint: /app/host-configs/entrypoint.sh
+
   mysql-dep-test:
     container_name: mysql-dep-test
     image: "mysql:8.0.32"
