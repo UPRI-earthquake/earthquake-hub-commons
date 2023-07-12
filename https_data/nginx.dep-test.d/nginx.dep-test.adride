@@ -6,7 +6,7 @@
 
 server {
   listen 80;
-  server_name localhost;
+  server_name 10.196.16.141;
 
   location / {
     return 301 https://$host$request_uri;
@@ -19,10 +19,10 @@ server {
 
 server {
   listen 443 ssl;
-  server_name localhost;
+  server_name 10.196.16.141;
 
-  ssl_certificate /etc/nginx/ssl/live/localhost/localhost+1.pem;
-  ssl_certificate_key /etc/nginx/ssl/live/localhost/localhost+1-key.pem;
+  ssl_certificate /etc/nginx/ssl/live/adride-pc/10.196.16.141.pem;
+  ssl_certificate_key /etc/nginx/ssl/live/adride-pc/10.196.16.141-key.pem;
 
   location / { # serve front-end react app
     proxy_pass http://earthquake-hub-frontend-dep-test:3000/;
