@@ -21,8 +21,9 @@ docker compose --env-file .dep-test.env up --build
 
 Take note:
 1. The compose file pulls the following images from the corresponding github repo's:
-    1. [earthquake-hub-frontend](https://github.com/prokorpio/earthquake-hub-frontend/pkgs/container/earthquake-hub-frontend)
-    2. [earthquake-hub-backend](https://github.com/prokorpio/earthquake-hub-backend/pkgs/container/earthquake-hub-backend)
+    1. [earthquake-hub-frontend](https://github.com/upri-earthquake/earthquake-hub-frontend/pkgs/container/earthquake-hub-frontend)
+    2. [earthquake-hub-backend](https://github.com/upri-earthquake/earthquake-hub-backend/pkgs/container/earthquake-hub-backend)
+    3. [receiver-ringserver](https://github.com/upri-earthquake/receiver-ringserver/pkgs/container/receiver-ringserver)
 2. [Authenticating with personal access token](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-with-a-personal-access-token-classic) is necessary to pull from `ghcr.io`.
 3. The image versions must be set manually to whichever version is desired (`latest` tag is not used).
 4. Note that the creation of self-signed SSL certificate is only for testing. For actual deployment, [usage of certbot](https://mindsers.blog/post/https-using-nginx-certbot-docker/) will replace this. (TODO: create deployment version of docker-compose.yml)
