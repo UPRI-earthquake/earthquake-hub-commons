@@ -33,8 +33,13 @@ services:
 
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
-    #image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally (IP addr is localhost)
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest" # same as above but with env file set to adride pc IP addr
+    environment:
+      REACT_APP_PUBLIC_VAPID_KEY: ${REACT_APP_PUBLIC_VAPID_KEY}
+      REACT_APP_BACKEND: ${REACT_APP_BACKEND}
+      REACT_APP_FDSNWS: ${REACT_APP_FDSNWS}
+      REACT_APP_RS_FDSNWS: ${REACT_APP_RS_FDSNWS}
+      REACT_APP_RINGSERVER_WS: ${REACT_APP_RINGSERVER_WS}
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
