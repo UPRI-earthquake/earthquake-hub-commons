@@ -1,3 +1,6 @@
+# For actual deployment
+# Requires valid domain name for certbot
+
 version: '3.9'
 
 services:
@@ -16,24 +19,20 @@ services:
     extra_hosts:
        - "host.docker.internal:host-gateway"
     volumes:
-      - ./https_data/nginx.dep-test.d:/etc/nginx/conf.d:ro     # Mount read-only access to nginx conf file. TODO: This should change on production compose file
-                                                               # NOTE: There are multiple nginx conf files in this directory, rename what you want to use into nginx.dep-test.conf. 
-                                                               #       Make sure that only one file has .conf as this is what'll be used by nginx.
+      - ./https_data/nginx.d:/etc/nginx/conf.d:ro              # Mount read-only access to nginx conf file.
+                                                               # NOTE: Edit nginx.conf in this dir to reflect correct domain name of your server
       - ./https_data/certbot/www:/var/www/certbot:ro           # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
-      - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key
-                                                               #   under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
-                                                               # Run the following command to renew the certificates:
-                                                               #   docker compose run --rm certbot renew
-# For now, do not use certbot for local testing
-#  certbot:
-#    image: certbot/certbot
-#    volumes:
-#      - ./https_data/certbot/conf:/etc/letsencrypt:rw
-#      - ./https_data/certbot/www:/var/www/certbot:rw
+      - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
 
-  earthquake-hub-frontend-dep-test:
-    container_name: earthquake-hub-frontend-dep-test
-    environment:
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./https_data/certbot/conf:/etc/letsencrypt:rw          # Run the following command to renew the certificates:
+      - ./https_data/certbot/www:/var/www/certbot:rw           #   docker compose run --rm certbot renew
+
+  ehub-frontend:
+    container_name: ehub-frontend
+    environment: # load env vars from docker compose --env-file
       REACT_APP_PUBLIC_VAPID_KEY: ${REACT_APP_PUBLIC_VAPID_KEY}
       REACT_APP_BACKEND: ${REACT_APP_BACKEND}
       REACT_APP_FDSNWS: ${REACT_APP_FDSNWS}
@@ -50,9 +49,9 @@ services:
       app-network:
         ipv4_address: 172.21.0.2
 
-  earthquake-hub-backend-dep-test:
-    container_name: earthquake-hub-backend-dep-test
-    environment: # load env vars from docker compose --env-file
+  ehub-backend:
+    container_name: ehub-backend
+    environment:
       MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
@@ -79,7 +78,7 @@ services:
       # jsonwebtoken keys
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
     depends_on:
-      - "mongodb-dep-test"
+      - "mongodb"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
     expose:
       - "5000"
@@ -89,8 +88,8 @@ services:
       app-network:
         ipv4_address: 172.21.0.3
 
-  ringserver-dep-test:
-    container_name: ringserver-dep-test
+  ringserver:
+    container_name: ringserver
     image: "ghcr.io/upri-earthquake/receiver-ringserver:latest"
     expose:
       - "16000"
@@ -107,7 +106,7 @@ services:
     user: root
     entrypoint: /app/host-configs/entrypoint.sh
 
-  mongodb-dep-test:
+  mongodb:
     container_name: mongodb-dep-test
     image: "mongo:5.0"
     volumes:
@@ -120,60 +119,57 @@ services:
       app-network:
         ipv4_address: 172.21.0.4
 
-
 # TODO: Add admin-frontend
 # TODO: Add admin-backend
 
 # Geoserve is used to convert (long, lat) to city-names.
 # The images are available as bare-metal builds in the server
-# Let's not use it for local testing for now as building these
-# images takes a while
-#
-#  geoserve-db:
-#    build:
-#      context: ../hazdev-geoserve-ws
-#      dockerfile: Dockerfile-db
-#    image: "usgs/hazdev-geoserve-db:latest"
-#    environment:
-#      - DATALOAD_DIR=/tmp/dataload
-#      - DB_ADMIN_USER=postgres
-#      - DB_ADMIN_PASSWORD=sysop-admin-postgres
-#      - DB_LOAD_TYPE=incremental
-#      - DB_NAME=earthquake
-#      - DB_USER=web
-#      - DB_PASS=sysop-postgres
-#      - DB_SCHEMA=geoserve
-#      - DB_ADMIN_DSN=pgsql:dbname=earthquake
-#      - PGDATA=/var/lib/postgresqsl/data/pgdata
-#      - POSTGRES_PASSWORD=sysop-admin-postgres
-#    volumes:
-#      # volume to store downloaded data files
-#      - ../hazdev-geoserve-ws/data/dataload:/tmp/dataload
-#      # volume to store database data files
-#      - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
-#    networks:
-#      app-network:
-#        ipv4_address: 172.21.0.6
-#
-#  geoserve-ws:
-#    build:
-#      context: ../hazdev-geoserve-ws
-#      dockerfile: Dockerfile-ws
-#    image: "usgs/hazdev-geoserve-ws:latest"
-#    environment:
-#      - DB_DSN=pgsql:host=geoserve-db;port=5432;dbname=earthquake
-#      - DB_USER=web
-#      - DB_PASS=sysop-postgres
-#      - DB_SCHEMA=geoserve
-#    volumes:
-#      # volumes for local dev
-#      - ../hazdev-geoserve-ws/src/htdocs:/var/www/apps/hazdev-geoserve-ws/htdocs
-#      - ../hazdev-geoserve-ws/src/lib:/var/www/apps/hazdev-geoserve-ws/lib
-#    expose:
-#      - "80"
-#    networks:
-#      app-network:
-#        ipv4_address: 172.21.0.7
+
+  geoserve-db:
+    build:
+      context: ../hazdev-geoserve-ws
+      dockerfile: Dockerfile-db
+    image: "usgs/hazdev-geoserve-db:latest"
+    environment:
+      - DATALOAD_DIR=${DATALOAD_DIR}
+      - DB_ADMIN_USER=${DB_ADMIN_USER}
+      - DB_ADMIN_PASSWORD=${DB_ADMIN_PASSWORD}
+      - DB_LOAD_TYPE=${DB_LOAD_TYPE}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_SCHEMA=${DB_SCHEMA}
+      - DB_ADMIN_DSN=${DB_ADMIN_DSN}
+      - PGDATA=${PGDATA}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      # volume to store downloaded data files
+      - ../hazdev-geoserve-ws/data/dataload:/tmp/dataload
+      # volume to store database data files
+      - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.6
+
+  geoserve-ws:
+    build:
+      context: ../hazdev-geoserve-ws
+      dockerfile: Dockerfile-ws
+    image: "usgs/hazdev-geoserve-ws:latest"
+    environment:
+      - DB_DSN=${DB_DSN}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_SCHEMA=${DB_SCHEMA}
+    volumes:
+      # volumes for local dev
+      - ../hazdev-geoserve-ws/src/htdocs:/var/www/apps/hazdev-geoserve-ws/htdocs
+      - ../hazdev-geoserve-ws/src/lib:/var/www/apps/hazdev-geoserve-ws/lib
+    expose:
+      - "80"
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.7
 
 volumes:
   earthquake-hub-mongodb-data:
@@ -182,7 +178,7 @@ volumes:
 
 networks:
   app-network:
-    name: earthquake-hub
+    name: earthquake-hub-network
     driver: bridge
     ipam:
       config:
