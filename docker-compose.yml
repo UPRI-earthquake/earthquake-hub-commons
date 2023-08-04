@@ -58,6 +58,10 @@ services:
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
 
+      # webpush notifications VAPID keys
+      PUBLIC_VAPID_KEY: ${PUBLIC_VAPID_KEY}
+      PRIVATE_VAPID_KEY: ${PRIVATE_VAPID_KEY}
+      WEB_PUSH_CONTACT: ${WEB_PUSH_CONTACT}
 
       # Granular reverse-geolocation
       GEOSERVE_HOST: ${GEOSERVE_HOST}
