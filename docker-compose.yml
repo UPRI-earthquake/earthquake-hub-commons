@@ -33,8 +33,13 @@ services:
 
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
-    #image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:1.0.0" # pulls from ghcr.io if not available locally (IP addr is localhost)
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest" # same as above but with env file set to adride pc IP addr
+    environment:
+      REACT_APP_PUBLIC_VAPID_KEY: ${REACT_APP_PUBLIC_VAPID_KEY}
+      REACT_APP_BACKEND: ${REACT_APP_BACKEND}
+      REACT_APP_FDSNWS: ${REACT_APP_FDSNWS}
+      REACT_APP_RS_FDSNWS: ${REACT_APP_RS_FDSNWS}
+      REACT_APP_RINGSERVER_WS: ${REACT_APP_RINGSERVER_WS}
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
@@ -53,15 +58,10 @@ services:
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
 
-      # mysql db for seiscomp
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_NAME: ${MYSQL_NAME}
-
-      # realtime comms with seiscomp
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      # webpush notifications VAPID keys
+      PUBLIC_VAPID_KEY: ${PUBLIC_VAPID_KEY}
+      PRIVATE_VAPID_KEY: ${PRIVATE_VAPID_KEY}
+      WEB_PUSH_CONTACT: ${WEB_PUSH_CONTACT}
 
       # Granular reverse-geolocation
       GEOSERVE_HOST: ${GEOSERVE_HOST}
@@ -79,9 +79,7 @@ services:
       # jsonwebtoken keys
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
     depends_on:
-      - "mysql-dep-test"
       - "mongodb-dep-test"
-      - "redis-dep-test"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
     expose:
       - "5000"
@@ -109,23 +107,6 @@ services:
     user: root
     entrypoint: /app/host-configs/entrypoint.sh
 
-  mysql-dep-test:
-    container_name: mysql-dep-test
-    image: "mysql:8.0.32"
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: yes
-      MYSQL_USER: ${MYSQL_USER} # will automatically be replaced by values --env-file (.env by default)
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_NAME}
-    volumes:
-      # init db contents by binding sample seiscomp data from host into docker-entrypoint-initdb.d
-      - ./deploymentTesting/mysql/data/seiscompDB.sql:/docker-entrypoint-initdb.d/seiscompDB.sql
-    network_mode: bridge # make sure to use 172.17.0.0/24 subnet (default docker0 network)
-    ports:
-      - "3306:3306" # like in production, mysql should be connectable through "host.docker.internal:host-gateway"
-                    # this mirrors a mysql service running locally on host machine
-
   mongodb-dep-test:
     container_name: mongodb-dep-test
     image: "mongo:5.0"
@@ -139,14 +120,6 @@ services:
       app-network:
         ipv4_address: 172.21.0.4
 
-  redis-dep-test:
-    container_name: redis-dep-test
-    image: "redis:latest"
-    expose:
-      - "6379"
-    networks:
-      app-network:
-        ipv4_address: 172.21.0.5
 
 # TODO: Add admin-frontend
 # TODO: Add admin-backend
