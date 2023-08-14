@@ -4,15 +4,15 @@
 version: '3.9'
 
 services:
-  nginx-proxy-dep-test:
-    container_name: nginx-proxy-dep-test
+  nginx-proxy:
+    container_name: nginx-proxy
     image: "nginx:stable"
     depends_on:
-      - "earthquake-hub-backend-dep-test"
-      - "earthquake-hub-frontend-dep-test"
+      - "ehub-backend"
+      - "ehub-frontend"
     networks:
       app-network:
-        ipv4_address: 172.21.0.10
+        ipv4_address: 172.21.0.8
     ports:  # expose nginx ports to host
       - "80:80"
       - "443:443"
@@ -40,7 +40,7 @@ services:
       REACT_APP_RINGSERVER_WS: ${REACT_APP_RINGSERVER_WS}
     image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
     depends_on:
-      - "earthquake-hub-backend-dep-test"
+      - "ehub-backend"
     expose:
       - "3000"
     extra_hosts:
@@ -93,10 +93,9 @@ services:
     image: "ghcr.io/upri-earthquake/receiver-ringserver:latest"
     expose:
       - "16000"
-      - "18000"
     networks:
       app-network:
-        ipv4_address: 172.21.0.6
+        ipv4_address: 172.21.0.4
     ports:
       - "16000:16000" # make host's 16000 connect to RS's 16000
     volumes:
@@ -107,8 +106,8 @@ services:
     entrypoint: /app/host-configs/entrypoint.sh
 
   mongodb:
-    container_name: mongodb-dep-test
-    image: "mongo:5.0"
+    container_name: mongodb
+    image: "mongo:4.4.6"
     volumes:
       - type: volume
         source: earthquake-hub-mongodb-data
@@ -117,7 +116,7 @@ services:
       - "27017"
     networks:
       app-network:
-        ipv4_address: 172.21.0.4
+        ipv4_address: 172.21.0.5
 
 # TODO: Add admin-frontend
 # TODO: Add admin-backend
