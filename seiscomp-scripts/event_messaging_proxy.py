@@ -5,7 +5,7 @@ import seiscomp.seismology
 import requests
 import json
 
-EARTHQUAKE_HUB_URL = "https://10.196.16.108/api" # Change this to IP address of earthquake-hub-backend
+EARTHQUAKE_HUB_URL = "http://172.21.0.3:5000" # Change this to IP address of earthquake-hub-backend
 
 class EventListener(seiscomp.client.Application):
 
@@ -104,7 +104,7 @@ class EventListener(seiscomp.client.Application):
                 "last_modification": lastModified
             }
 
-            response = requests.post(EARTHQUAKE_HUB_URL + "/messaging/new-event", json=data)
+            response = requests.post(EARTHQUAKE_HUB_URL + "/messaging/restricted/new-event", json=data)
             if response.status_code == 200:
                 print("Event added successfully.")
             else:
