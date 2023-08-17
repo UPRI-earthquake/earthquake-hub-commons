@@ -12,7 +12,7 @@
 echo "--- Re-importing data into Docker Mongo DB volume ---"
 
 # Set the name of the Docker MongoDB container
-CONTAINER_NAME="mongodb-dep-test"
+CONTAINER_NAME="mongodb"
 
 # Set the name of the MongoDB database
 DB_NAME="latestEQs"
