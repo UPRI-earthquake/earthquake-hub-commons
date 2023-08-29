@@ -67,6 +67,7 @@ services:
       GEOSERVE_PORT: ${GEOSERVE_PORT}
 
       # production host domain (and for deployment testing)
+      W3_CLIENT_PROD_HOST: ${W3_CLIENT_PROD_HOST}
       CLIENT_PROD_HOST: ${CLIENT_PROD_HOST}
       BACKEND_PROD_HOST: ${BACKEND_PROD_HOST}
       BACKEND_PROD_PORT: ${BACKEND_PROD_PORT}
