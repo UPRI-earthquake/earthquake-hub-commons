@@ -1,0 +1,24 @@
+# Start service after docker,
+# Don't set restart limit, attempt nonstop
+[Unit]
+Description=Send pick events from seiscomp to webapp
+After=docker.service
+StartLimitIntervalSec=0
+
+# Simple type of service, always restart after 1 sec
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=<user>
+
+# Add environment variables for seiscomp sdk
+Environment="SEISCOMP_ROOT=/home/<user>/seiscomp"
+Environment="PATH=/home/<user>/seiscomp/bin:$PATH"
+Environment="LD_LIBRARY_PATH=/home/<user>/seiscomp/lib:$LD_LIBRARY_PATH"
+Environment="PYTHONPATH=/home/<user>/seiscomp/lib/python"
+
+ExecStart=<python3-path> -u <scripts-dir>/pick_messaging_proxy.py
+
+[Install]
+WantedBy=multi-user.target

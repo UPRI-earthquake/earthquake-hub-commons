@@ -2,7 +2,7 @@ import sys, traceback, seiscomp.client
 import requests
 import json
 
-EARTHQUAKE_HUB_URL = "https://10.196.16.108/api" # Change this to IP address of earthquake-hub-backend
+EARTHQUAKE_HUB_URL = "http://172.21.0.3:5000" # Change this to IP address of earthquake-hub-backend
 
 class PickListener(seiscomp.client.Application):
 
@@ -22,7 +22,7 @@ class PickListener(seiscomp.client.Application):
                 "timestamp": pick.time().value().toString("%Y-%m-%dT%H:%M:%S.000Z")
             }
 
-            response = requests.post(EARTHQUAKE_HUB_URL + "/messaging/new-pick", json=data)
+            response = requests.post(EARTHQUAKE_HUB_URL + "/messaging/restricted/new-pick", json=data)
             if response.status_code == 200:
                 print("Pick sent successfully.")
             else:
