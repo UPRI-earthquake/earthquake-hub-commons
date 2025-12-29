@@ -1,0 +1,184 @@
+[
+  {
+    "publicID": "gfz2025tqdd",
+    "OT": {
+      "$date": "2025-10-07T04:55:53.66Z"
+    },
+    "latitude_value": 10.109,
+    "longitude_value": 126.508,
+    "depth_value": 67.2,
+    "magnitude_value": 5.14,
+    "type": "UPDATE",
+    "text": "Philippine Islands Region",
+    "place": "Philippine Islands Region"
+  },
+  {
+    "publicID": "gfz2025tqbt",
+    "OT": {
+      "$date": "2025-10-07T04:14:03.2Z"
+    },
+    "latitude_value": 5.584,
+    "longitude_value": 126.45,
+    "depth_value": 89.8,
+    "magnitude_value": 5.02,
+    "type": "UPDATE",
+    "text": "Mindanao, Philippines",
+    "place": "Mindanao, Philippines"
+  },
+  {
+    "publicID": "gfz2025tptm",
+    "OT": {
+      "$date": "2025-10-07T00:04:00.84Z"
+    },
+    "latitude_value": 9.805,
+    "longitude_value": 122.06,
+    "depth_value": 10.0,
+    "magnitude_value": 5.11,
+    "type": "UPDATE",
+    "text": "Negros, Philippines",
+    "place": "Negros, Philippines"
+  },
+  {
+    "publicID": "gfz2025tlaa",
+    "OT": {
+      "$date": "2025-10-04T09:41:17.86Z"
+    },
+    "latitude_value": 10.847,
+    "longitude_value": 124.044,
+    "depth_value": 10.0,
+    "magnitude_value": 5.01,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025tkgg",
+    "OT": {
+      "$date": "2025-10-03T23:42:19.3Z"
+    },
+    "latitude_value": 10.151,
+    "longitude_value": 126.482,
+    "depth_value": 46.4,
+    "magnitude_value": 5.06,
+    "type": "UPDATE",
+    "text": "Philippine Islands Region",
+    "place": "Philippine Islands Region"
+  },
+  {
+    "publicID": "gfz2025tigu",
+    "OT": {
+      "$date": "2025-10-02T21:39:56.25Z"
+    },
+    "latitude_value": 11.055,
+    "longitude_value": 124.266,
+    "depth_value": 10.0,
+    "magnitude_value": 5.03,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025tfxp",
+    "OT": {
+      "$date": "2025-10-01T14:47:00.64Z"
+    },
+    "latitude_value": 10.962,
+    "longitude_value": 124.364,
+    "depth_value": 10.0,
+    "magnitude_value": 5.12,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025tfue",
+    "OT": {
+      "$date": "2025-10-01T13:03:04.02Z"
+    },
+    "latitude_value": 10.895,
+    "longitude_value": 124.131,
+    "depth_value": 10.0,
+    "magnitude_value": 5.24,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025tefq",
+    "OT": {
+      "$date": "2025-09-30T16:34:34.16Z"
+    },
+    "latitude_value": 10.983,
+    "longitude_value": 124.086,
+    "depth_value": 10.0,
+    "magnitude_value": 5.03,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025tebw",
+    "OT": {
+      "$date": "2025-09-30T14:39:39.74Z"
+    },
+    "latitude_value": 10.953,
+    "longitude_value": 124.159,
+    "depth_value": 10.0,
+    "magnitude_value": 5.18,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025tebq",
+    "OT": {
+      "$date": "2025-09-30T14:33:00.63Z"
+    },
+    "latitude_value": 10.933,
+    "longitude_value": 124.04,
+    "depth_value": 10.0,
+    "magnitude_value": 5.29,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025teaz",
+    "OT": {
+      "$date": "2025-09-30T14:12:59.86Z"
+    },
+    "latitude_value": 11.019,
+    "longitude_value": 123.879,
+    "depth_value": 10.0,
+    "magnitude_value": 5.38,
+    "type": "UPDATE",
+    "text": "Cebu, Philippines",
+    "place": "Cebu, Philippines"
+  },
+  {
+    "publicID": "gfz2025tean",
+    "OT": {
+      "$date": "2025-09-30T13:59:45.01Z"
+    },
+    "latitude_value": 11.118,
+    "longitude_value": 124.133,
+    "depth_value": 14.8,
+    "magnitude_value": 6.82,
+    "type": "UPDATE",
+    "text": "Leyte, Philippines",
+    "place": "Leyte, Philippines"
+  },
+  {
+    "publicID": "gfz2025siod",
+    "OT": {
+      "$date": "2025-09-18T19:52:09.47Z"
+    },
+    "latitude_value": 16.946,
+    "longitude_value": 120.195,
+    "depth_value": 26.0,
+    "magnitude_value": 5.47,
+    "type": "UPDATE",
+    "text": "Luzon, Philippines",
+    "place": "Luzon, Philippines"
+  }
+]

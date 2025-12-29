@@ -1,74 +1,450 @@
-[
-  {
-    "_id": {
-      "$oid": "6450c931ca93380137ba6d26"
-    },
-    "username": "citizen",
-    "email": "citizen@gmail.com",
-    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
-    "accountStatus": "Active",
-    "roles": [
-      "citizen",
-      "sensor"
-    ],
-    "devices": [
-      {
-        "$oid": "6450c9fbca93380137ba6d28"
-      },
-      {
-        "$oid": "6450cab7ca93380137ba6d29"
-      },
-      {
-        "$oid": "6450cac6ca93380137ba6d2a"
-      }
-    ]
+[{
+  "_id": {
+    "$oid": "68b1255f4ce4aa765efbed49"
   },
-  {
-    "_id": {
-      "$oid": "6450cc90ca93380137ba6dff"
+  "email": "amfal2@example.com",
+  "username": "amfal2",
+  "password": "$2a$10$rKF1U2qrsTAw4a.V8bGgM.AJl05ddUU1ywICNoRjWdl6ErzYPaPTC",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b125894ce4aa765efbed8e"
     },
-    "username": "admin",
-    "email": "admin@gmail.com",
-    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
-    "accountStatus": "Active",
-    "roles": [
-      "admin"
-    ],
-    "devices": []
+    {
+      "$oid": "68b1258a4ce4aa765efbed97"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:23.722Z"
   },
-  {
-    "_id": {
-      "$oid": "6450cca2ca93380137ba6d50"
-    },
-    "username": "citizen-1-device",
-    "email": "citizen-1-device@gmail.com",
-    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
-    "accountStatus": "Active",
-    "roles": [
-      "citizen",
-      "sensor"
-    ],
-    "devices": [
-      {
-        "$oid": "6450caf7ca93380137ba6d2d"
-      }
-    ]
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.027Z"
   },
-  {
-    "_id": {
-      "$oid": "6450cca2ca93380137ba6d5f"
-    },
-    "username": "brgy",
-    "email": "brgy@gmail.com",
-    "password": "$2a$10$XUHKOaNg39PfuNZ4WpwSy.u1MGbdPUmTXH9fGelIBl9UedAD6bwTO",
-    "accountStatus": "Active",
-    "roles": [
-      "brgy"
-    ],
-    "devices": [
-      {
-        "$oid": "6450caf7ca93380137ba6d2d"
-      }
-    ]
-  }
-]
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1255f4ce4aa765efbed4d"
+  },
+  "email": "msu_iit_2023@example.com",
+  "username": "msu_iit_2023",
+  "password": "$2a$10$DQm/g4aFM13FQuKtMxQ3zOMiBwIfOTyyruEPGkEb2G8411kbjEflW",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbed9e"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:23.776Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.085Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1255f4ce4aa765efbed51"
+  },
+  "email": "bscrs@example.com",
+  "username": "bscrs",
+  "password": "$2a$10$BLgHHPJj5t426I/v57a3peUnMQesECWWnvuNOld3fDa6oCEwutVQm",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbeda5"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:23.826Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.142Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1255f4ce4aa765efbed55"
+  },
+  "email": "ceanncadhaxx@example.com",
+  "username": "ceanncadhaxx",
+  "password": "$2a$10$BZ8FLjFOetCKHrDZbuZ6lOSCc18FSuIQxzeAP7e53329k9UZe3xW2",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedac"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:23.877Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.200Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1255f4ce4aa765efbed59"
+  },
+  "email": "tazmr@example.com",
+  "username": "tazmr",
+  "password": "$2a$10$IbInZ9cc5dzD.J.9lrRCcuMNEc3MrsMta3jGFti7Zam5Ngnlc8W9S",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedb3"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:23.927Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.256Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1255f4ce4aa765efbed5d"
+  },
+  "email": "PiliPaninap@example.com",
+  "username": "PiliPaninap",
+  "password": "$2a$10$COljRocWuzCV8PS8FoyOeOeXGoH5P4X1IoujqIKp9jAdfV7MOSeWC",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedba"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:23.977Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.313Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed61"
+  },
+  "email": "cdrrmokidapawan@example.com",
+  "username": "cdrrmokidapawan",
+  "password": "$2a$10$4AYL4d0TGRdJ//4xxGfPMuv1jKCxvTBLkYxxyuSjBZlc0UAZDtE2C",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedc1"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.028Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.369Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed65"
+  },
+  "email": "ramon@example.com",
+  "username": "ramon",
+  "password": "$2a$10$FiICL.rZOhtdCpN71iZb3.yrFFR16C9qhUEtFQj7Nn63mwRRny9Ta",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedc8"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.079Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.427Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed69"
+  },
+  "email": "CityofNaga@example.com",
+  "username": "CityofNaga",
+  "password": "$2a$10$/QAVa/CjzjVhENMnxE.NeeT645Z6NkFd7LAFdqaoysqIKdThPhYam",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedcf"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.128Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.483Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed6d"
+  },
+  "email": "MMSU-DRRM@example.com",
+  "username": "MMSU-DRRM",
+  "password": "$2a$10$f0LMJZr2krt8D31FROvJYu84F1uoJ9xrnzdnvLswc/qCOvt1jhn2q",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedd6"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.178Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.539Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed71"
+  },
+  "email": "bdsantiago@example.com",
+  "username": "bdsantiago",
+  "password": "$2a$10$8oMyfZcMyWAKfLoI2BPeV.SngxcMMqn3wyCmBIrwXM0pxBiXBiKZy",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbeddd"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.228Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.595Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed75"
+  },
+  "email": "SSCDRRM@example.com",
+  "username": "SSCDRRM",
+  "password": "$2a$10$G7ZQK2JfcKwynG43wWnbzOH9MskBq81aTPnYbKdi2IZEssFzFkA16",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbede4"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.277Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.651Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed79"
+  },
+  "email": "CSU_MAIN@example.com",
+  "username": "CSU_MAIN",
+  "password": "$2a$10$RUxlPFJJhK.T.Wy6L6MAZulzNz.40F/aTu3czDRLroBCcCXObQ/hm",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedeb"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.328Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.706Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed7d"
+  },
+  "email": "Cebu_DRRMO@example.com",
+  "username": "Cebu_DRRMO",
+  "password": "$2a$10$6R2XEYejcvI1J52D7pA69Ow1e5I1xtogf2lGpGLRDPmbyKG4Nj9US",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedf2"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.377Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.763Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed81"
+  },
+  "email": "PUPLopez@example.com",
+  "username": "PUPLopez",
+  "password": "$2a$10$xnHYoVsQyHa7wIsDadHdHegcRGmaQpiC/0h8hPbpgK0XoS7/6gXfa",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbedf9"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.427Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.818Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed85"
+  },
+  "email": "norsugeology@example.com",
+  "username": "norsugeology",
+  "password": "$2a$10$B6rqyK4dgi748qfSWhs63OmSClRQzfhlff2tbaexkP/Nrmxli9SpC",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": false,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbee00"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.478Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.874Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b125604ce4aa765efbed89"
+  },
+  "email": "upri-dev@example.com",
+  "username": "upri-dev",
+  "password": "$2a$10$P0RfBiGu9O.YgZtstFwkAeLFiWQTU/TSBBZbg1rJggyA2Y/BMweei",
+  "roles": [
+    "citizen",
+    "sensor"
+  ],
+  "isApproved": true,
+  "devices": [
+    {
+      "$oid": "68b1258a4ce4aa765efbee07"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-08-29T03:58:24.528Z"
+  },
+  "updatedAt": {
+    "$date": "2025-08-29T03:59:06.930Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68c269a357509c44d336fd69"
+  },
+  "email": "updiliman@example.com",
+  "username": "UP-Diliman",
+  "password": "$2a$10$dV4.sFTgsLrrtsQ94NCWXeEaTyMwl.E4OoM1mQTr/QrmGaWqedrPO",
+  "roles": [
+    "brgy"
+  ],
+  "isApproved": true,
+  "devices": [],
+  "ringserverUrl": "host.docker.internal",
+  "ringserverPort": 16000,
+  "createdAt": {
+    "$date": "2025-09-11T06:18:11.053Z"
+  },
+  "updatedAt": {
+    "$date": "2025-09-11T06:18:11.053Z"
+  },
+  "__v": 0
+}]

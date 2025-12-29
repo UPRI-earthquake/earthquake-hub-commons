@@ -1,7 +1,7 @@
 # For deployment testing
 # Uses self-signed certificate
 
-version: '3.9'
+#version: '3.9'
 
 services:
   nginx-proxy-dep-test:
@@ -42,6 +42,7 @@ services:
       REACT_APP_FDSNWS: ${REACT_APP_FDSNWS}
       REACT_APP_RS_FDSNWS: ${REACT_APP_RS_FDSNWS}
       REACT_APP_RINGSERVER_WS: ${REACT_APP_RINGSERVER_WS}
+      REACT_APP_GA_MEASUREMENT_ID_DEV: ${REACT_APP_GA_MEASUREMENT_ID_DEV}
     image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
     depends_on:
       - "earthquake-hub-backend-dep-test"
@@ -102,7 +103,7 @@ services:
       - "18000"
     networks:
       app-network:
-        ipv4_address: 172.21.0.6
+        ipv4_address: 172.21.0.4
     ports:
       - "16000:16000" # make host's 16000 connect to RS's 16000
     volumes:
@@ -121,9 +122,11 @@ services:
         target: /data/db
     expose:
       - "27017"
+    ports:
+      - "27017:27017" # make host's 27017 connect to mongo's 27017
     networks:
       app-network:
-        ipv4_address: 172.21.0.4
+        ipv4_address: 172.21.0.5
 
 
 # TODO: Add admin-frontend
@@ -134,51 +137,51 @@ services:
 # Let's not use it for local testing for now as building these
 # images takes a while
 #
-#  geoserve-db:
-#    build:
-#      context: ../hazdev-geoserve-ws
-#      dockerfile: Dockerfile-db
-#    image: "usgs/hazdev-geoserve-db:latest"
-#    environment:
-#      - DATALOAD_DIR=/tmp/dataload
-#      - DB_ADMIN_USER=postgres
-#      - DB_ADMIN_PASSWORD=sysop-admin-postgres
-#      - DB_LOAD_TYPE=incremental
-#      - DB_NAME=earthquake
-#      - DB_USER=web
-#      - DB_PASS=sysop-postgres
-#      - DB_SCHEMA=geoserve
-#      - DB_ADMIN_DSN=pgsql:dbname=earthquake
-#      - PGDATA=/var/lib/postgresqsl/data/pgdata
-#      - POSTGRES_PASSWORD=sysop-admin-postgres
-#    volumes:
-#      # volume to store downloaded data files
-#      - ../hazdev-geoserve-ws/data/dataload:/tmp/dataload
-#      # volume to store database data files
-#      - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
-#    networks:
-#      app-network:
-#        ipv4_address: 172.21.0.6
-#
-#  geoserve-ws:
-#    build:
-#      context: ../hazdev-geoserve-ws
-#      dockerfile: Dockerfile-ws
-#    image: "usgs/hazdev-geoserve-ws:latest"
-#    environment:
-#      - DB_DSN=pgsql:host=geoserve-db;port=5432;dbname=earthquake
-#      - DB_USER=web
-#      - DB_PASS=sysop-postgres
-#      - DB_SCHEMA=geoserve
-#    volumes:
-#      # volumes for local dev
-#      - ../hazdev-geoserve-ws/src/htdocs:/var/www/apps/hazdev-geoserve-ws/htdocs
-#      - ../hazdev-geoserve-ws/src/lib:/var/www/apps/hazdev-geoserve-ws/lib
-#    expose:
-#      - "80"
-#    networks:
-#      app-network:
-#        ipv4_address: 172.21.0.7
+  geoserve-db:
+    build:
+      context: ../hazdev-geoserve-ws
+      dockerfile: Dockerfile-db
+    image: "usgs/hazdev-geoserve-db:latest"
+    environment:
+      - DATALOAD_DIR=/tmp/dataload
+      - DB_ADMIN_USER=postgres
+      - DB_ADMIN_PASSWORD=sysop-admin-postgres
+      - DB_LOAD_TYPE=incremental
+      - DB_NAME=earthquake
+      - DB_USER=web
+      - DB_PASS=sysop-postgres
+      - DB_SCHEMA=geoserve
+      - DB_ADMIN_DSN=pgsql:dbname=earthquake
+      - PGDATA=/var/lib/postgresqsl/data/pgdata
+      - POSTGRES_PASSWORD=sysop-admin-postgres
+    volumes:
+      # volume to store downloaded data files
+      - ../hazdev-geoserve-ws/data/dataload:/tmp/dataload
+      # volume to store database data files
+      - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.6
+
+  geoserve-ws:
+    build:
+      context: ../hazdev-geoserve-ws
+      dockerfile: Dockerfile-ws
+    image: "usgs/hazdev-geoserve-ws:latest"
+    environment:
+      - DB_DSN=pgsql:host=geoserve-db;port=5432;dbname=earthquake
+      - DB_USER=web
+      - DB_PASS=sysop-postgres
+      - DB_SCHEMA=geoserve
+    volumes:
+      # volumes for local dev
+      - ../hazdev-geoserve-ws/src/htdocs:/var/www/apps/hazdev-geoserve-ws/htdocs
+      - ../hazdev-geoserve-ws/src/lib:/var/www/apps/hazdev-geoserve-ws/lib
+    expose:
+      - "80"
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.7
 
 volumes:
   earthquake-hub-mongodb-data-dep-test:
@@ -192,5 +195,3 @@ networks:
     ipam:
       config:
         - subnet: 172.21.0.0/16
-
-

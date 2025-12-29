@@ -1,79 +1,324 @@
 [{
-    "_id": {
-      "$oid": "6450c9fbca93380137ba6d28"
-    },
-    "streamId": "TO_BE_LINKED",
-    "network": "AM",
-    "station": "R3B2",
-    "latitude": 1.234,
-    "longitude": 123.456,
-    "elevation": 0.123,
-    "macAddress": "TO_BE_LINKED",
-    "activity": "inactive",
-    "lastConnectedTime": "00:00:01"
-  },{
-    "_id": {
-      "$oid": "6450cab7ca93380137ba6d29"
-    },
-    "streamId": "TO_BE_LINKED",
-    "network": "AM",
-    "station": "R3B2A",
-    "latitude": 1.234,
-    "longitude": 123.456,
-    "elevation": 0.123,
-    "macAddress": "TO_BE_LINKED",
-    "activity": "inactive",
-    "lastConnectedTime": "00:00:02"
-  },{
-    "_id": {
-      "$oid": "6450cac6ca93380137ba6d2a"
-    },
-    "streamId": "TO_BE_LINKED",
-    "network": "AM",
-    "station": "R3B2B",
-    "latitude": 1.234,
-    "longitude": 123.456,
-    "elevation": 0.123,
-    "macAddress": "TO_BE_LINKED",
-    "activity": "inactive",
-    "lastConnectedTime": "00:00:03"
-  },{
-    "_id": {
-      "$oid": "6450cad4ca93380137ba6d2b"
-    },
-    "streamId": "TO_BE_LINKED",
-    "network": "AM",
-    "station": "R3B2C",
-    "latitude": 1.234,
-    "longitude": 123.456,
-    "elevation": 0.123,
-    "macAddress": "TO_BE_LINKED",
-    "activity": "inactive",
-    "lastConnectedTime": "00:00:04"
-  },{
-    "_id": {
-      "$oid": "6450cae1ca93380137ba6d2c"
-    },
-    "streamId": "TO_BE_LINKED",
-    "network": "AM",
-    "station": "R3B2D",
-    "latitude": 1.234,
-    "longitude": 123.456,
-    "elevation": 0.123,
-    "macAddress": "TO_BE_LINKED",
-    "activity": "inactive",
-    "lastConnectedTime": "00:00:05"
-  },{
-    "_id": {
-      "$oid": "6450caf7ca93380137ba6d2d"
-    },
-    "streamId": "TO_BE_LINKED",
-    "network": "AM",
-    "station": "R3B2E",
-    "latitude": 1.234,
-    "longitude": 123.456,
-    "elevation": 0.123,
-    "macAddress": "TO_BE_LINKED",
-    "activity": "inactive",
-    "lastConnectedTime": "00:00:06"
-  }]
+  "_id": {
+    "$oid": "68b125894ce4aa765efbed8e"
+  },
+  "description": "amfal2's device",
+  "streamId": "AM_R3B2D_.*/MSEED",
+  "network": "AM",
+  "station": "R3B2D",
+  "latitude": 14.6456,
+  "longitude": 121.0689,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:3B:2D",
+  "activity": "active",
+  "activityToggleTime": {
+    "$date": "2025-10-08T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbed97"
+  },
+  "description": "amfal2's device",
+  "streamId": "AM_RF8C0_.*/MSEED",
+  "network": "AM",
+  "station": "RF8C0",
+  "latitude": 7.0908,
+  "longitude": 125.5733,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:F8:C0",
+  "activity": "active",
+  "activityToggleTime": {
+    "$date": "2025-10-09T01:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbed9e"
+  },
+  "description": "msu_iit_2023's device",
+  "streamId": "AM_RC772_.*/MSEED",
+  "network": "AM",
+  "station": "RC772",
+  "latitude": 8.2418,
+  "longitude": 124.2437,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:C7:72",
+  "activity": "active",
+  "activityToggleTime": {
+    "$date": "2025-10-08T23:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbeda5"
+  },
+  "description": "bscrs's device",
+  "streamId": "AM_RF0BF_.*/MSEED",
+  "network": "AM",
+  "station": "RF0BF",
+  "latitude": 20.4511,
+  "longitude": 121.9687,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:F0:BF",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedac"
+  },
+  "description": "ceanncadhaxx's device",
+  "streamId": "AM_RD5D8_.*/MSEED",
+  "network": "AM",
+  "station": "RD5D8",
+  "latitude": 7.684743,
+  "longitude": 124.993484,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:D5:D8",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedb3"
+  },
+  "description": "tazmr's device",
+  "streamId": "AM_R1EFC_.*/MSEED",
+  "network": "AM",
+  "station": "R1EFC",
+  "latitude": 16.4061,
+  "longitude": 120.5753,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:1E:FC",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "2025-10-09T02:31:22.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedba"
+  },
+  "description": "PiliPaninap's device",
+  "streamId": "AM_RD4DD_.*/MSEED",
+  "network": "AM",
+  "station": "RD4DD",
+  "latitude": 14.5842,
+  "longitude": 121.4198,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:D4:DD",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedc1"
+  },
+  "description": "cdrrmokidapawan's device",
+  "streamId": "AM_R1382_.*/MSEED",
+  "network": "AM",
+  "station": "R1382",
+  "latitude": 7,
+  "longitude": 125.0879,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:13:82",
+  "activity": "active",
+  "activityToggleTime": {
+    "$date": "2025-10-09T02:31:22.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedc8"
+  },
+  "description": "ramon's device",
+  "streamId": "AM_R9829_.*/MSEED",
+  "network": "AM",
+  "station": "R9829",
+  "latitude": 10.716715,
+  "longitude": 122.567613,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:98:29",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedcf"
+  },
+  "description": "CityofNaga's device",
+  "streamId": "AM_R9CAE_.*/MSEED",
+  "network": "AM",
+  "station": "R9CAE",
+  "latitude": 10.2072,
+  "longitude": 123.7598,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:9C:AE",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedd6"
+  },
+  "description": "MMSU-DRRM's device",
+  "streamId": "AM_R1558_.*/MSEED",
+  "network": "AM",
+  "station": "R1558",
+  "latitude": 18.05934,
+  "longitude": 120.54323,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:15:58",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbeddd"
+  },
+  "description": "bdsantiago's device",
+  "streamId": "AM_R257C_.*/MSEED",
+  "network": "AM",
+  "station": "R257C",
+  "latitude": 11.2495,
+  "longitude": 125.0064,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:25:7C",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbede4"
+  },
+  "description": "SSCDRRM's device",
+  "streamId": "AM_REB4C_.*/MSEED",
+  "network": "AM",
+  "station": "REB4C",
+  "latitude": 6.0509,
+  "longitude": 121.0128,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:EB:4C",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedeb"
+  },
+  "description": "CSU_MAIN's device",
+  "streamId": "AM_R40BD_.*/MSEED",
+  "network": "AM",
+  "station": "R40BD",
+  "latitude": 8.954711,
+  "longitude": 125.5981,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:40:BD",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedf2"
+  },
+  "description": "Cebu_DRRMO's device",
+  "streamId": "AM_R8728_.*/MSEED",
+  "network": "AM",
+  "station": "R8728",
+  "latitude": 9.6303,
+  "longitude": 123.4801,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:87:28",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbedf9"
+  },
+  "description": "PUPLopez's device",
+  "streamId": "AM_R98E0_.*/MSEED",
+  "network": "AM",
+  "station": "R98E0",
+  "latitude": 13.8808,
+  "longitude": 122.2599,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:98:E0",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbee00"
+  },
+  "description": "norsugeology's device",
+  "streamId": "AM_RDA5A_.*/MSEED",
+  "network": "AM",
+  "station": "RDA5A",
+  "latitude": 9.3118,
+  "longitude": 123.3043,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:DA:5A",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68b1258a4ce4aa765efbee07"
+  },
+  "description": "upri-dev's device",
+  "streamId": "AM_RF47F_.*/MSEED",
+  "network": "AM",
+  "station": "RF47F",
+  "latitude": 14.585,
+  "longitude": 121.008,
+  "elevation": 10,
+  "macAddress": "02:00:00:00:F4:7F",
+  "activity": "inactive",
+  "activityToggleTime": {
+    "$date": "1970-01-01T00:00:00.000Z"
+  },
+  "__v": 0
+}]

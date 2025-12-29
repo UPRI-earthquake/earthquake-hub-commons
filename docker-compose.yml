@@ -38,6 +38,7 @@ services:
       REACT_APP_FDSNWS: ${REACT_APP_FDSNWS}
       REACT_APP_RS_FDSNWS: ${REACT_APP_RS_FDSNWS}
       REACT_APP_RINGSERVER_WS: ${REACT_APP_RINGSERVER_WS}
+      REACT_APP_GA_MEASUREMENT_ID: ${REACT_APP_GA_MEASUREMENT_ID}
     image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
     depends_on:
       - "ehub-backend"
@@ -79,6 +80,9 @@ services:
       # jsonwebtoken keys
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
       JWT_EXPIRY: ${JWT_EXPIRY}
+      # refresh token keys
+      REFRESH_TOKEN_PRIVATE_KEY: ${REFRESH_TOKEN_PRIVATE_KEY}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
     depends_on:
       - "mongodb"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
@@ -109,13 +113,15 @@ services:
 
   mongodb:
     container_name: mongodb
-    image: "mongo:4.4.6"
+    image: "mongo:5.0"
     volumes:
       - type: volume
         source: earthquake-hub-mongodb-data
         target: /data/db
     expose:
       - "27017"
+    ports:
+      - "27017:27017"
     networks:
       app-network:
         ipv4_address: 172.21.0.5
@@ -184,5 +190,3 @@ networks:
     ipam:
       config:
         - subnet: 172.21.0.0/16
-
-
