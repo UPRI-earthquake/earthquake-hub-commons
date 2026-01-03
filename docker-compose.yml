@@ -1,8 +1,6 @@
 # For actual deployment
 # Requires valid domain name for certbot
 
-version: '3.9'
-
 services:
   nginx-proxy:
     container_name: nginx-proxy
@@ -53,6 +51,7 @@ services:
   ehub-backend:
     container_name: ehub-backend
     environment:
+      NODE_ENV: production
       MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
@@ -78,11 +77,27 @@ services:
       RINGSERVER_PORT: ${RINGSERVER_PORT}
 
       # jsonwebtoken keys
+      ACCESS_TOKEN_PRIVATE_KEY_WEB: ${ACCESS_TOKEN_PRIVATE_KEY_WEB}
+      REFRESH_TOKEN_PRIVATE_KEY_WEB: ${REFRESH_TOKEN_PRIVATE_KEY_WEB}
+      JWT_WEB_EXPIRY: ${JWT_WEB_EXPIRY}
+      REFRESH_TOKEN_WEB_EXPIRY: ${REFRESH_TOKEN_WEB_EXPIRY}
+      ACCESS_TOKEN_PRIVATE_KEY_DEVICE: ${ACCESS_TOKEN_PRIVATE_KEY_DEVICE}
+      PASSWORD_RESET_TOKEN_KEY: ${PASSWORD_RESET_TOKEN_KEY}
+      PASSWORD_RESET_TOKEN_EXPIRY: ${PASSWORD_RESET_TOKEN_EXPIRY}
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
       JWT_EXPIRY: ${JWT_EXPIRY}
       # refresh token keys
       REFRESH_TOKEN_PRIVATE_KEY: ${REFRESH_TOKEN_PRIVATE_KEY}
       REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
+
+      # email delivery
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_SECURE: ${EMAIL_SECURE}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
     depends_on:
       - "mongodb"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"

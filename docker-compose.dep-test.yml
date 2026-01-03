@@ -1,8 +1,6 @@
 # For deployment testing
 # Uses self-signed certificate
 
-#version: '3.9'
-
 services:
   nginx-proxy-dep-test:
     container_name: nginx-proxy-dep-test
@@ -57,6 +55,7 @@ services:
   earthquake-hub-backend-dep-test:
     container_name: earthquake-hub-backend-dep-test
     environment: # load env vars from docker compose --env-file
+      NODE_ENV: production
       MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
@@ -82,8 +81,26 @@ services:
       RINGSERVER_PORT: ${RINGSERVER_PORT}
 
       # jsonwebtoken keys
+      ACCESS_TOKEN_PRIVATE_KEY_WEB: ${ACCESS_TOKEN_PRIVATE_KEY_WEB}
+      REFRESH_TOKEN_PRIVATE_KEY_WEB: ${REFRESH_TOKEN_PRIVATE_KEY_WEB}
+      JWT_WEB_EXPIRY: ${JWT_WEB_EXPIRY}
+      REFRESH_TOKEN_WEB_EXPIRY: ${REFRESH_TOKEN_WEB_EXPIRY}
+      ACCESS_TOKEN_PRIVATE_KEY_DEVICE: ${ACCESS_TOKEN_PRIVATE_KEY_DEVICE}
+      PASSWORD_RESET_TOKEN_KEY: ${PASSWORD_RESET_TOKEN_KEY}
+      PASSWORD_RESET_TOKEN_EXPIRY: ${PASSWORD_RESET_TOKEN_EXPIRY}
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
       JWT_EXPIRY: ${JWT_EXPIRY}
+      REFRESH_TOKEN_PRIVATE_KEY: ${REFRESH_TOKEN_PRIVATE_KEY}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
+
+      # email delivery
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_SECURE: ${EMAIL_SECURE}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
     depends_on:
       - "mongodb-dep-test"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
