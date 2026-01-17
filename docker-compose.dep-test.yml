@@ -90,8 +90,10 @@ services:
       PASSWORD_RESET_TOKEN_EXPIRY: ${PASSWORD_RESET_TOKEN_EXPIRY}
       ACCESS_TOKEN_PRIVATE_KEY: ${ACCESS_TOKEN_PRIVATE_KEY}
       JWT_EXPIRY: ${JWT_EXPIRY}
+      JWT_DEVICE_EXPIRY: ${JWT_DEVICE_EXPIRY}
       REFRESH_TOKEN_PRIVATE_KEY: ${REFRESH_TOKEN_PRIVATE_KEY}
       REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
+      REFRESH_TOKEN_DEVICE_EXPIRY: ${REFRESH_TOKEN_DEVICE_EXPIRY}
 
       # email delivery
       EMAIL_TRANSPORT: ${EMAIL_TRANSPORT}
@@ -140,7 +142,7 @@ services:
     expose:
       - "27017"
     ports:
-      - "27017:27017" # make host's 27017 connect to mongo's 27017
+      - "127.0.0.1:27017:27017" # bind to loopback to avoid exposing mongo externally
     networks:
       app-network:
         ipv4_address: 172.21.0.5
