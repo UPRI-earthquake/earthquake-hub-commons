@@ -3,8 +3,25 @@
 .dep-test.env
 .env
 
-https_data/certbot/conf/live
+# Certbot/Let's Encrypt runtime state (generated after `docker compose up`)
+https_data/certbot/conf/accounts/
+https_data/certbot/conf/archive/
+https_data/certbot/conf/csr/
+https_data/certbot/conf/keys/
+https_data/certbot/conf/live/
+https_data/certbot/conf/renewal/
+https_data/certbot/www/
+
+# Host-specific nginx overrides (keep the canonical .conf files tracked)
+https_data/nginx.d/*.local*
+https_data/nginx.dep-test.d/*.local*
 
 ringserver-configs/auth/
 ringserver-configs/ring.conf
 ringserver-configs/ring/
+
+# Generated service unit copies (created by `seiscomp-scripts/install-services.sh`)
+seiscomp-scripts/service-units/*.service
+
+# Python virtualenv (created by `seiscomp-scripts/install-services.sh`)
+seiscomp-scripts/.venv/
