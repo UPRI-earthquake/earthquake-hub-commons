@@ -48,6 +48,7 @@ When `ehub-backend` runs in Docker, execute tunnel scripts on the bastion host v
    - `bastion-tunnel LIST_DEVICES`
    - `sudo bastion-tunnel REGISTER_DEVICE ...`
    - `sudo bastion-tunnel REVOKE_DEVICE ...`
+   - `sudo bastion-tunnel REVOKE_DEVICE --device-id <id> --terminate-active` (optional immediate cutoff)
    - `bastion-tunnel CONNECT_DEVICE --device-id <id>`
    - Re-login once after setup to apply `upri-bastion-ops` group membership.
 3. Set `.env` values:

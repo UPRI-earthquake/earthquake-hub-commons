@@ -60,6 +60,7 @@ After setup, use sender-style command dispatch:
 bastion-tunnel LIST_DEVICES
 sudo bastion-tunnel REGISTER_DEVICE --device-id AM_RF47F --bastion-host earthquake.science.upd.edu.ph --public-key-file /etc/upri/remote-tunnel/id_ed25519.pub
 sudo bastion-tunnel REVOKE_DEVICE --device-id AM_RF47F
+sudo bastion-tunnel REVOKE_DEVICE --device-id AM_RF47F --terminate-active
 bastion-tunnel CONNECT_DEVICE --device-id AM_RF47F
 ```
 
@@ -67,6 +68,7 @@ Note:
 - `REGISTER_DEVICE` and `REVOKE_DEVICE` remain privileged operations (`sudo` required).
 - `LIST_DEVICES` and `CONNECT_DEVICE` are non-root after setup configures group access.
 - Re-login once after setup to pick up new group membership.
+- `REVOKE_DEVICE --terminate-active` additionally tries to kill an already-established tunnel listener on the assigned port.
 
 `CONNECT_DEVICE` is a convenience wrapper that resolves the registered `remote_port` and executes:
 
