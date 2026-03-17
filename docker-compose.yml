@@ -22,6 +22,20 @@ services:
       - ./https_data/certbot/www:/var/www/certbot:ro           # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
       - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
 
+  wstunnel-server:
+    image: ghcr.io/erebe/wstunnel:${WSTUNNEL_SERVER_VERSION:-v10.5.2}
+    container_name: wstunnel-server
+    command:
+      - /home/app/wstunnel
+      - server
+      - ws://0.0.0.0:7001
+      - --log-lvl
+      - INFO
+      # - --restrict-http-upgrade-path-prefix
+      # - ${TUNNEL_WSS_PATH_PREFIX:-api/ws-tunnel/change-me}
+    restart: unless-stopped
+    network_mode: host
+
   certbot:
     image: certbot/certbot
     volumes:
@@ -109,6 +123,38 @@ services:
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASS: ${EMAIL_PASS}
       EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_LOGO_URL: ${EMAIL_LOGO_URL:-}
+      EMAIL_LOGO_PATH: ${EMAIL_LOGO_PATH:-}
+      EMAIL_LOGO_PUBLIC_FILE: ${EMAIL_LOGO_PUBLIC_FILE:-}
+      EMAIL_FRONTEND_PUBLIC_DIR: ${EMAIL_FRONTEND_PUBLIC_DIR:-}
+      ALERT_EMAIL_ADMIN_TO: ${ALERT_EMAIL_ADMIN_TO}
+      EMAIL_ALERT_ADMIN_TO: ${EMAIL_ALERT_ADMIN_TO}
+      ALERT_EMAIL_THREAD_KEY: ${ALERT_EMAIL_THREAD_KEY}
+      ALERT_EMAIL_THREAD_DOMAIN: ${ALERT_EMAIL_THREAD_DOMAIN}
+      RSHAKE_ALERT_SHARED_SECRET: ${RSHAKE_ALERT_SHARED_SECRET}
+      TUNNEL_REGISTER_SCRIPT: ${TUNNEL_REGISTER_SCRIPT}
+      TUNNEL_REVOKE_SCRIPT: ${TUNNEL_REVOKE_SCRIPT}
+      TUNNEL_REGISTRY_FILE: ${TUNNEL_REGISTRY_FILE}
+      TUNNEL_BASTION_HOST: ${TUNNEL_BASTION_HOST}
+      TUNNEL_BASTION_PORT: ${TUNNEL_BASTION_PORT}
+      TUNNEL_PORT_RANGE_START: ${TUNNEL_PORT_RANGE_START}
+      TUNNEL_PORT_RANGE_END: ${TUNNEL_PORT_RANGE_END}
+      TUNNEL_BASTION_HOST_KEY: ${TUNNEL_BASTION_HOST_KEY}
+      TUNNEL_WSS_URL: ${TUNNEL_WSS_URL:-wss://earthquake.science.upd.edu.ph}
+      TUNNEL_WSS_PATH_PREFIX: ${TUNNEL_WSS_PATH_PREFIX:-api/ws-tunnel/change-me}
+      TUNNEL_SCRIPT_EXEC_MODE: ${TUNNEL_SCRIPT_EXEC_MODE}
+      TUNNEL_SCRIPT_SSH_HOST: ${TUNNEL_SCRIPT_SSH_HOST}
+      TUNNEL_SCRIPT_SSH_PORT: ${TUNNEL_SCRIPT_SSH_PORT}
+      TUNNEL_SCRIPT_SSH_USER: ${TUNNEL_SCRIPT_SSH_USER}
+      TUNNEL_SCRIPT_SSH_KEY_PATH: ${TUNNEL_SCRIPT_SSH_KEY_PATH}
+      TUNNEL_SCRIPT_SSH_KNOWN_HOSTS_PATH: ${TUNNEL_SCRIPT_SSH_KNOWN_HOSTS_PATH}
+      TUNNEL_SCRIPT_SSH_STRICT_HOST_KEY: ${TUNNEL_SCRIPT_SSH_STRICT_HOST_KEY}
+      TUNNEL_SCRIPT_SSH_REMOTE_PREFIX: ${TUNNEL_SCRIPT_SSH_REMOTE_PREFIX}
+    volumes:
+      - type: bind
+        source: ./bastion
+        target: /opt/upri/bastion
+        read_only: true
     depends_on:
       - "mongodb"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"

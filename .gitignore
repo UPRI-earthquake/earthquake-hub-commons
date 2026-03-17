@@ -19,6 +19,9 @@ https_data/nginx.dep-test.d/*.local*
 ringserver-configs/auth/
 ringserver-configs/ring.conf
 ringserver-configs/ring/
+bastion/ssh/
+bastion/*.pem
+bastion/*.key
 
 # Generated service unit copies (created by `seiscomp-scripts/install-services.sh`)
 seiscomp-scripts/service-units/*.service
