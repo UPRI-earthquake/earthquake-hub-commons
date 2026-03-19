@@ -1,20 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_VERSION="2026-03-17.1"
+SCRIPT_VERSION="2026-03-19.1"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGISTRY_FILE_DEFAULT="/etc/upri/rshake-tunnels/devices.csv"
 SSH_USER_DEFAULT="${TUNNEL_DEVICE_SSH_USER:-myshake}"
 SSH_HOST_DEFAULT="${TUNNEL_DEVICE_SSH_HOST:-127.0.0.1}"
 SSH_BIN_DEFAULT="${SSH_BIN:-ssh}"
+SSH_KEY_PATH_DEFAULT="${TUNNEL_OPERATOR_SSH_PRIVATE_KEY_PATH:-$SCRIPT_DIR/ssh/operator-shell_id_ed25519}"
+SSH_KNOWN_HOSTS_PATH_DEFAULT="${TUNNEL_OPERATOR_SSH_KNOWN_HOSTS_PATH:-}"
+SSH_STRICT_HOST_KEY_DEFAULT="${TUNNEL_OPERATOR_SSH_STRICT_HOST_KEY:-accept-new}"
 
 device_id=""
 registry_file="$REGISTRY_FILE_DEFAULT"
 ssh_user="$SSH_USER_DEFAULT"
 ssh_host="$SSH_HOST_DEFAULT"
 ssh_bin="$SSH_BIN_DEFAULT"
+ssh_key_path="$SSH_KEY_PATH_DEFAULT"
+ssh_known_hosts_path="$SSH_KNOWN_HOSTS_PATH_DEFAULT"
+ssh_strict_host_key="$SSH_STRICT_HOST_KEY_DEFAULT"
 dry_run="false"
 allow_non_active="false"
 skip_listener_check="false"
+allow_password_auth="false"
 declare -a passthrough_ssh_args
 passthrough_ssh_args=()
 
@@ -28,6 +36,11 @@ Required:
 Options:
   --ssh-user <user>         Target device ssh user (default: $SSH_USER_DEFAULT)
   --ssh-host <host>         Local relay host (default: $SSH_HOST_DEFAULT)
+  --ssh-key-path <path>     Private key for passwordless device shell login (default: $SSH_KEY_PATH_DEFAULT)
+  --known-hosts <path>      Optional known_hosts file used by ssh
+  --strict-host-key-checking <yes|no|accept-new>
+                            Host key policy (default: $SSH_STRICT_HOST_KEY_DEFAULT)
+  --allow-password-auth     Allow password/keyboard-interactive fallback (default: disabled)
   --registry-file <path>    Registry CSV path (default: $REGISTRY_FILE_DEFAULT)
   --dry-run                 Print resolved ssh command without executing it
   --allow-non-active        Allow connect even if status is not "active"
@@ -38,6 +51,7 @@ Options:
 Examples:
   $(basename "$0") --device-id AM_RF47F
   $(basename "$0") --device-id AM_RF47F --ssh-user myshake
+  $(basename "$0") --device-id AM_RF47F --ssh-key-path /opt/upri/bastion/ssh/operator-shell_id_ed25519
   $(basename "$0") --device-id AM_RF47F -- -o StrictHostKeyChecking=no
 EOF_USAGE
 }
@@ -52,6 +66,13 @@ validate_port() {
   [[ "$value" =~ ^[0-9]+$ ]] || return 1
   (( value >= 1 && value <= 65535 )) || return 1
   return 0
+}
+
+validate_strict_host_key_value() {
+  case "$1" in
+    yes|no|accept-new) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 registry_get_row_by_device() {
@@ -83,6 +104,14 @@ parse_args() {
         ssh_user="${2:-}"; shift 2 ;;
       --ssh-host)
         ssh_host="${2:-}"; shift 2 ;;
+      --ssh-key-path)
+        ssh_key_path="${2:-}"; shift 2 ;;
+      --known-hosts)
+        ssh_known_hosts_path="${2:-}"; shift 2 ;;
+      --strict-host-key-checking)
+        ssh_strict_host_key="${2:-}"; shift 2 ;;
+      --allow-password-auth)
+        allow_password_auth="true"; shift ;;
       --registry-file)
         registry_file="${2:-}"; shift 2 ;;
       --dry-run)
@@ -110,6 +139,13 @@ parse_args() {
   [[ -r "$registry_file" ]] || fail "Registry file missing or not readable: $registry_file (run with sudo or adjust permissions)."
   [[ -n "$ssh_user" ]] || fail "--ssh-user cannot be empty."
   [[ -n "$ssh_host" ]] || fail "--ssh-host cannot be empty."
+  validate_strict_host_key_value "$ssh_strict_host_key" || fail "--strict-host-key-checking must be one of: yes, no, accept-new."
+  if [[ "$allow_password_auth" != "true" ]]; then
+    [[ -r "$ssh_key_path" ]] || fail "SSH private key is not readable: $ssh_key_path (run sudo bastion-tunnel SETUP_HOST or pass --ssh-key-path)."
+  fi
+  if [[ -n "$ssh_known_hosts_path" ]]; then
+    mkdir -p "$(dirname "$ssh_known_hosts_path")" >/dev/null 2>&1 || true
+  fi
   command -v "$ssh_bin" >/dev/null 2>&1 || fail "SSH client not found: $ssh_bin"
 }
 
@@ -136,7 +172,26 @@ main() {
     fail "No listener on 127.0.0.1:$remote_port (device likely offline). Use --skip-listener-check to bypass."
   fi
 
-  cmd=("$ssh_bin" "-p" "$remote_port" "${ssh_user}@${ssh_host}")
+  cmd=("$ssh_bin" "-p" "$remote_port")
+
+  if [[ "$allow_password_auth" == "true" ]]; then
+    cmd+=("-o" "BatchMode=no")
+  else
+    cmd+=(
+      "-o" "BatchMode=yes"
+      "-o" "IdentitiesOnly=yes"
+      "-i" "$ssh_key_path"
+      "-o" "PreferredAuthentications=publickey"
+      "-o" "PubkeyAuthentication=yes"
+    )
+  fi
+
+  cmd+=("-o" "StrictHostKeyChecking=${ssh_strict_host_key}")
+  if [[ -n "$ssh_known_hosts_path" ]]; then
+    cmd+=("-o" "UserKnownHostsFile=${ssh_known_hosts_path}")
+  fi
+
+  cmd+=("${ssh_user}@${ssh_host}")
   if (( ${#passthrough_ssh_args[@]} > 0 )); then
     cmd+=("${passthrough_ssh_args[@]}")
   fi

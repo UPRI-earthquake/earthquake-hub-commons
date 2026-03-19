@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_VERSION="2026-03-17.2"
+SCRIPT_VERSION="2026-03-19.4"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 INSTALL_DIR_DEFAULT="/opt/upri/bastion"
@@ -9,6 +9,8 @@ LAUNCHER_PATH_DEFAULT="/usr/local/bin/bastion-tunnel"
 TUNNEL_ADMIN_USER_DEFAULT="tunnel-admin"
 SSH_HOST_ALIAS_DEFAULT="host.docker.internal"
 SSH_PORT_DEFAULT="22"
+BACKEND_CONTAINER_UID_DEFAULT="1000"
+BACKEND_CONTAINER_GID_DEFAULT="1000"
 REGISTRY_FILE_DEFAULT="/etc/upri/rshake-tunnels/devices.csv"
 OPS_GROUP_DEFAULT="upri-bastion-ops"
 REGISTRY_HEADER="device_id,bastion_user,remote_port,status,key_fingerprint,created_at,revoked_at"
@@ -18,6 +20,8 @@ launcher_path="$LAUNCHER_PATH_DEFAULT"
 tunnel_admin_user="$TUNNEL_ADMIN_USER_DEFAULT"
 ssh_host_alias="$SSH_HOST_ALIAS_DEFAULT"
 ssh_port="$SSH_PORT_DEFAULT"
+backend_container_uid="$BACKEND_CONTAINER_UID_DEFAULT"
+backend_container_gid="$BACKEND_CONTAINER_GID_DEFAULT"
 registry_file="$REGISTRY_FILE_DEFAULT"
 ops_group="$OPS_GROUP_DEFAULT"
 skip_tunnel_admin="false"
@@ -35,11 +39,13 @@ Options:
   --tunnel-admin-user <user>   SSH operator user for backend script execution (default: $TUNNEL_ADMIN_USER_DEFAULT)
   --ssh-host-alias <host>      Host alias written to known_hosts (default: $SSH_HOST_ALIAS_DEFAULT)
   --ssh-port <port>            SSH port for known_hosts entries (default: $SSH_PORT_DEFAULT)
+  --backend-container-uid <id> UID used by backend container for reading bind-mounted SSH keys (default: $BACKEND_CONTAINER_UID_DEFAULT)
+  --backend-container-gid <id> GID used by backend container for reading bind-mounted SSH keys (default: $BACKEND_CONTAINER_GID_DEFAULT)
   --registry-file <path>       Tunnel registry CSV path (default: $REGISTRY_FILE_DEFAULT)
   --ops-group <group>          Group for non-root LIST/CONNECT access (default: $OPS_GROUP_DEFAULT)
   --skip-tunnel-admin          Do not create/manage tunnel-admin user
   --skip-sudoers               Do not create/update sudoers rule
-  --skip-ssh-material          Do not create /opt/upri/bastion/ssh key + known_hosts
+  --skip-ssh-material          Do not create /opt/upri/bastion/ssh keys + known_hosts
   --skip-ops-group             Do not configure registry operator group access
   --version                    Print version
   -h, --help                   Show this help
@@ -53,6 +59,17 @@ fail() {
 
 warn() {
   echo "[WARN] $*" >&2
+}
+
+can_user_read_file() {
+  local user_name="$1"
+  local file_path="$2"
+
+  if command -v runuser >/dev/null 2>&1; then
+    runuser -u "$user_name" -- test -r "$file_path"
+    return $?
+  fi
+  su -s /bin/sh -c "test -r \"$file_path\"" "$user_name"
 }
 
 require_root() {
@@ -81,6 +98,10 @@ parse_args() {
         ssh_host_alias="${2:-}"; shift 2 ;;
       --ssh-port)
         ssh_port="${2:-}"; shift 2 ;;
+      --backend-container-uid)
+        backend_container_uid="${2:-}"; shift 2 ;;
+      --backend-container-gid)
+        backend_container_gid="${2:-}"; shift 2 ;;
       --registry-file)
         registry_file="${2:-}"; shift 2 ;;
       --ops-group)
@@ -110,6 +131,8 @@ parse_args() {
   [[ -n "$ops_group" ]] || fail "--ops-group cannot be empty."
   [[ "$ops_group" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || fail "Invalid --ops-group value: $ops_group"
   validate_port "$ssh_port" || fail "--ssh-port must be between 1 and 65535."
+  [[ "$backend_container_uid" =~ ^[0-9]+$ ]] || fail "--backend-container-uid must be numeric."
+  [[ "$backend_container_gid" =~ ^[0-9]+$ ]] || fail "--backend-container-gid must be numeric."
 }
 
 install_scripts() {
@@ -121,6 +144,7 @@ install_scripts() {
     "revoke-device.sh"
     "list-devices.sh"
     "connect-device.sh"
+    "resolve-device.sh"
     "bastion.sh"
     "setup-host.sh"
   )
@@ -203,6 +227,12 @@ ensure_tunnel_admin_user() {
   mkdir -p "$user_home/.ssh"
   chmod 0700 "$user_home/.ssh"
   chown -R "$tunnel_admin_user:$tunnel_admin_user" "$user_home/.ssh"
+
+  # Ensure tunnel-admin can traverse/read bastion SSH material when ops-group
+  # access is enabled (ssh dir is group-owned and 0750).
+  if [[ "$skip_ops_group" == "false" ]] && getent group "$ops_group" >/dev/null 2>&1; then
+    usermod -aG "$ops_group" "$tunnel_admin_user"
+  fi
 }
 
 append_unique_line() {
@@ -216,8 +246,12 @@ append_unique_line() {
 
 setup_ssh_material() {
   local ssh_dir
-  local key_path
-  local key_pub_path
+  local admin_key_path
+  local admin_key_pub_path
+  local operator_shell_key_path
+  local operator_shell_key_pub_path
+  local operator_actions_key_path
+  local operator_actions_key_pub_path
   local known_hosts_path
   local host_key_file
   local key_type
@@ -230,25 +264,62 @@ setup_ssh_material() {
   fi
 
   ssh_dir="$install_dir/ssh"
-  key_path="$ssh_dir/tunnel-admin_id_ed25519"
-  key_pub_path="$key_path.pub"
+  admin_key_path="$ssh_dir/tunnel-admin_id_ed25519"
+  admin_key_pub_path="$admin_key_path.pub"
+  operator_shell_key_path="$ssh_dir/operator-shell_id_ed25519"
+  operator_shell_key_pub_path="$operator_shell_key_path.pub"
+  operator_actions_key_path="$ssh_dir/operator-remote-actions_id_ed25519"
+  operator_actions_key_pub_path="$operator_actions_key_path.pub"
   known_hosts_path="$ssh_dir/known_hosts"
 
   mkdir -p "$ssh_dir"
-  chmod 0700 "$ssh_dir"
-
-  if [[ ! -f "$key_path" || ! -f "$key_pub_path" ]]; then
-    ssh-keygen -t ed25519 -N '' -f "$key_path" >/dev/null
+  if [[ "$skip_ops_group" == "false" ]] && getent group "$ops_group" >/dev/null 2>&1; then
+    chgrp "$ops_group" "$ssh_dir"
+    chmod 0750 "$ssh_dir"
+  else
+    chmod 0700 "$ssh_dir"
   fi
-  chmod 0600 "$key_path"
-  chmod 0644 "$key_pub_path"
+
+  if [[ ! -f "$admin_key_path" || ! -f "$admin_key_pub_path" ]]; then
+    ssh-keygen -t ed25519 -N '' -f "$admin_key_path" >/dev/null
+  fi
+  if [[ ! -f "$operator_shell_key_path" || ! -f "$operator_shell_key_pub_path" ]]; then
+    ssh-keygen -t ed25519 -N '' -f "$operator_shell_key_path" >/dev/null
+  fi
+  if [[ ! -f "$operator_actions_key_path" || ! -f "$operator_actions_key_pub_path" ]]; then
+    ssh-keygen -t ed25519 -N '' -f "$operator_actions_key_path" >/dev/null
+  fi
+
+  chmod 0600 "$admin_key_path"
+  chmod 0644 "$admin_key_pub_path"
+
+  if [[ "$skip_ops_group" == "false" ]] && getent group "$ops_group" >/dev/null 2>&1; then
+    chgrp "$ops_group" "$operator_shell_key_path" "$operator_shell_key_pub_path"
+    chmod 0640 "$operator_shell_key_path"
+    chmod 0644 "$operator_shell_key_pub_path"
+  else
+    chmod 0600 "$operator_shell_key_path"
+    chmod 0644 "$operator_shell_key_pub_path"
+  fi
+
+  if [[ "$skip_tunnel_admin" == "false" ]] && id -u "$tunnel_admin_user" >/dev/null 2>&1; then
+    chown "$tunnel_admin_user:$tunnel_admin_user" "$operator_actions_key_path" "$operator_actions_key_pub_path"
+  elif [[ "$skip_ops_group" == "false" ]] && getent group "$ops_group" >/dev/null 2>&1; then
+    chgrp "$ops_group" "$operator_actions_key_path" "$operator_actions_key_pub_path"
+  fi
+  chmod 0600 "$operator_actions_key_path"
+  chmod 0644 "$operator_actions_key_pub_path"
 
   : > "$known_hosts_path"
   for host_key_file in /etc/ssh/ssh_host_ed25519_key.pub /etc/ssh/ssh_host_rsa_key.pub; do
     [[ -r "$host_key_file" ]] || continue
     read -r key_type key_data _ < "$host_key_file"
     [[ -n "${key_type:-}" && -n "${key_data:-}" ]] || continue
+    # Include both plain-host and bracketed host:port formats.
+    # Some SSH invocations match one or the other depending on how host/port is passed.
+    printf '%s %s %s\n' "$ssh_host_alias" "$key_type" "$key_data" >> "$known_hosts_path"
     printf '[%s]:%s %s %s\n' "$ssh_host_alias" "$ssh_port" "$key_type" "$key_data" >> "$known_hosts_path"
+    printf '127.0.0.1 %s %s\n' "$key_type" "$key_data" >> "$known_hosts_path"
     printf '[127.0.0.1]:%s %s %s\n' "$ssh_port" "$key_type" "$key_data" >> "$known_hosts_path"
   done
   chmod 0644 "$known_hosts_path"
@@ -260,10 +331,61 @@ setup_ssh_material() {
   if [[ "$skip_tunnel_admin" == "false" ]] && id -u "$tunnel_admin_user" >/dev/null 2>&1; then
     user_home="$(getent passwd "$tunnel_admin_user" | cut -d: -f6)"
     auth_keys_path="$user_home/.ssh/authorized_keys"
-    append_unique_line "$auth_keys_path" "$(cat "$key_pub_path")"
+    append_unique_line "$auth_keys_path" "$(cat "$admin_key_pub_path")"
     chmod 0600 "$auth_keys_path"
     chown "$tunnel_admin_user:$tunnel_admin_user" "$auth_keys_path"
   fi
+}
+
+verify_ssh_material_access() {
+  local operator_actions_key_path
+
+  if [[ "$skip_ssh_material" == "true" ]]; then
+    return 0
+  fi
+  if [[ "$skip_tunnel_admin" == "true" ]]; then
+    return 0
+  fi
+  if ! id -u "$tunnel_admin_user" >/dev/null 2>&1; then
+    fail "Tunnel admin user is missing during SSH material verification: $tunnel_admin_user"
+  fi
+
+  operator_actions_key_path="$install_dir/ssh/operator-remote-actions_id_ed25519"
+  [[ -r "$operator_actions_key_path" ]] || fail "Missing remote-actions private key: $operator_actions_key_path"
+
+  if ! can_user_read_file "$tunnel_admin_user" "$operator_actions_key_path"; then
+    fail "Remote-actions key is not readable by $tunnel_admin_user: $operator_actions_key_path"
+  fi
+}
+
+sync_workspace_ssh_material() {
+  local source_ssh_dir
+  local target_ssh_dir
+
+  if [[ "$skip_ssh_material" == "true" ]]; then
+    return 0
+  fi
+
+  source_ssh_dir="$install_dir/ssh"
+  target_ssh_dir="$SCRIPT_DIR/ssh"
+  if [[ "$source_ssh_dir" == "$target_ssh_dir" ]]; then
+    return 0
+  fi
+
+  if [[ ! -d "$source_ssh_dir" ]]; then
+    warn "Source SSH material directory is missing: $source_ssh_dir"
+    return 0
+  fi
+
+  install -d -m 0700 -o "$backend_container_uid" -g "$backend_container_gid" "$target_ssh_dir"
+
+  install -m 0600 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/tunnel-admin_id_ed25519" "$target_ssh_dir/tunnel-admin_id_ed25519"
+  install -m 0644 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/tunnel-admin_id_ed25519.pub" "$target_ssh_dir/tunnel-admin_id_ed25519.pub"
+  install -m 0600 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/operator-shell_id_ed25519" "$target_ssh_dir/operator-shell_id_ed25519"
+  install -m 0644 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/operator-shell_id_ed25519.pub" "$target_ssh_dir/operator-shell_id_ed25519.pub"
+  install -m 0600 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/operator-remote-actions_id_ed25519" "$target_ssh_dir/operator-remote-actions_id_ed25519"
+  install -m 0644 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/operator-remote-actions_id_ed25519.pub" "$target_ssh_dir/operator-remote-actions_id_ed25519.pub"
+  install -m 0644 -o "$backend_container_uid" -g "$backend_container_gid" "$source_ssh_dir/known_hosts" "$target_ssh_dir/known_hosts"
 }
 
 setup_sudoers() {
@@ -282,7 +404,7 @@ setup_sudoers() {
   tmp_file="$(mktemp /tmp/upri-tunnel-admin-sudoers.XXXXXX)"
 
   cat <<EOF_SUDOERS > "$tmp_file"
-Cmnd_Alias UPRI_BASTION_CMDS = $install_dir/register-device.sh, $install_dir/revoke-device.sh, $install_dir/list-devices.sh
+Cmnd_Alias UPRI_BASTION_CMDS = $install_dir/register-device.sh, $install_dir/revoke-device.sh, $install_dir/list-devices.sh, $install_dir/resolve-device.sh
 $tunnel_admin_user ALL=(root) NOPASSWD: UPRI_BASTION_CMDS
 EOF_SUDOERS
 
@@ -309,17 +431,47 @@ Installed scripts:
   $install_dir/revoke-device.sh
   $install_dir/list-devices.sh
   $install_dir/connect-device.sh
+  $install_dir/resolve-device.sh
   $install_dir/bastion.sh
 
 Backend env recommendation:
   TUNNEL_SCRIPT_EXEC_MODE=ssh
+  TUNNEL_RESOLVE_SCRIPT=$install_dir/resolve-device.sh
   TUNNEL_SCRIPT_SSH_HOST=$ssh_host_alias
   TUNNEL_SCRIPT_SSH_USER=$tunnel_admin_user
   TUNNEL_SCRIPT_SSH_KEY_PATH=$install_dir/ssh/tunnel-admin_id_ed25519
   TUNNEL_SCRIPT_SSH_KNOWN_HOSTS_PATH=$install_dir/ssh/known_hosts
+  TUNNEL_SCRIPT_TIMEOUT_MS=15000
   TUNNEL_SCRIPT_SSH_REMOTE_PREFIX=sudo -n
+  TUNNEL_REMOTE_ACTION_EXEC_MODE=relay
+  TUNNEL_REMOTE_ACTION_TARGET_SSH_HOST=127.0.0.1
+  TUNNEL_REMOTE_ACTION_RELAY_SSH_REMOTE_PREFIX=
+  TUNNEL_REMOTE_ACTION_SSH_HOST=$ssh_host_alias
+  TUNNEL_REMOTE_ACTION_SSH_USER=myshake
+  TUNNEL_REMOTE_ACTION_SSH_KEY_PATH=$install_dir/ssh/operator-remote-actions_id_ed25519
+  TUNNEL_REMOTE_ACTION_SSH_KNOWN_HOSTS_PATH=$install_dir/ssh/known_hosts
+  TUNNEL_REMOTE_ACTION_SSH_STRICT_HOST_KEY=false
+  TUNNEL_REMOTE_ACTION_TIMEOUT_MS=20000
+
+Operator shell key (used by CONNECT_DEVICE):
+  Private: $install_dir/ssh/operator-shell_id_ed25519
+  Public:  $install_dir/ssh/operator-shell_id_ed25519.pub
+
+Remote-actions key (used by /device/remote-actions/*):
+  Private: $install_dir/ssh/operator-remote-actions_id_ed25519
+  Public:  $install_dir/ssh/operator-remote-actions_id_ed25519.pub
 
 EOF_SUMMARY
+
+  if [[ "$install_dir/ssh" != "$SCRIPT_DIR/ssh" ]]; then
+    cat <<EOF_SYNC
+Docker bind-mount sync:
+  Synced: $install_dir/ssh -> $SCRIPT_DIR/ssh
+  Synced owner: ${backend_container_uid}:${backend_container_gid}
+  (so containers mounting ./bastion can read the generated SSH material)
+
+EOF_SYNC
+  fi
 
   if [[ "$skip_ops_group" == "false" ]]; then
     echo
@@ -357,6 +509,8 @@ main() {
   setup_ops_group_access
   ensure_tunnel_admin_user
   setup_ssh_material
+  verify_ssh_material_access
+  sync_workspace_ssh_material
   setup_sudoers
   print_summary
 }

@@ -44,6 +44,10 @@ When `ehub-backend` runs in Docker, execute tunnel scripts on the bastion host v
 
 1. Run one-time bootstrap on host:
    - `sudo ./bastion/setup-host.sh`
+   - This now also syncs generated SSH material into `./bastion/ssh` for Compose bind-mount compatibility.
+   - It writes both `host` and `[host]:port` `known_hosts` formats for strict SSH checking compatibility.
+   - If backend container UID/GID is not `1000:1000`, run:
+     - `sudo ./bastion/setup-host.sh --backend-container-uid <uid> --backend-container-gid <gid>`
 2. Use command wrapper for operations:
    - `bastion-tunnel LIST_DEVICES`
    - `sudo bastion-tunnel REGISTER_DEVICE ...`
@@ -52,12 +56,28 @@ When `ehub-backend` runs in Docker, execute tunnel scripts on the bastion host v
    - `bastion-tunnel CONNECT_DEVICE --device-id <id>`
    - Re-login once after setup to apply `upri-bastion-ops` group membership.
 3. Set `.env` values:
+   - `TUNNEL_BASTION_HOST=<bastion-hostname>`
+   - `TUNNEL_BASTION_PORT=22` (SSH metadata port for enrollment output; wstunnel transport is controlled by `TUNNEL_WSS_URL`)
    - `TUNNEL_SCRIPT_EXEC_MODE=ssh`
+   - `TUNNEL_RESOLVE_SCRIPT=/opt/upri/bastion/resolve-device.sh`
    - `TUNNEL_SCRIPT_SSH_HOST=host.docker.internal`
+   - `TUNNEL_SCRIPT_SSH_PORT=22`
    - `TUNNEL_SCRIPT_SSH_USER=tunnel-admin`
    - `TUNNEL_SCRIPT_SSH_KEY_PATH=/opt/upri/bastion/ssh/tunnel-admin_id_ed25519`
    - `TUNNEL_SCRIPT_SSH_KNOWN_HOSTS_PATH=/opt/upri/bastion/ssh/known_hosts`
+   - `TUNNEL_SCRIPT_TIMEOUT_MS=15000`
    - `TUNNEL_SCRIPT_SSH_REMOTE_PREFIX=sudo -n`
+   - `TUNNEL_REMOTE_ACTION_EXEC_MODE=relay`
+   - `TUNNEL_REMOTE_ACTION_TARGET_SSH_HOST=127.0.0.1`
+   - `TUNNEL_REMOTE_ACTION_RELAY_SSH_REMOTE_PREFIX=` (keep empty in normal setup)
+   - `TUNNEL_REMOTE_ACTION_SSH_HOST=host.docker.internal`
+   - `TUNNEL_REMOTE_ACTION_SSH_USER=myshake`
+   - `TUNNEL_REMOTE_ACTION_SSH_KEY_PATH=/opt/upri/bastion/ssh/operator-remote-actions_id_ed25519`
+   - `TUNNEL_REMOTE_ACTION_SSH_KNOWN_HOSTS_PATH=/opt/upri/bastion/ssh/known_hosts`
+   - `TUNNEL_REMOTE_ACTION_SSH_STRICT_HOST_KEY=false`
+   - `TUNNEL_REMOTE_ACTION_TIMEOUT_MS=20000`
+   - `TUNNEL_OPERATOR_SSH_PUBLIC_KEY=<optional fallback>`
+   - `TUNNEL_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY=<optional fallback>`
    - `TUNNEL_WSS_URL=wss://earthquake.science.upd.edu.ph`
    - `TUNNEL_WSS_PATH_PREFIX=api/ws-tunnel/<secret>`
    - `WSTUNNEL_SERVER_VERSION=v10.5.2`
@@ -68,6 +88,11 @@ When `ehub-backend` runs in Docker, execute tunnel scripts on the bastion host v
 - The deployment compose stack includes `wstunnel-server` behind nginx at `/api/ws-tunnel/`.
 - `wstunnel-server` image tag is controlled by `WSTUNNEL_SERVER_VERSION` (default `v10.5.2`).
 - Keep `TUNNEL_WSS_PATH_PREFIX` aligned across:
-  - `wstunnel-server` (`--restrict-http-upgrade-path-prefix`)
+  - `wstunnel-restrictions.yaml` (`!PathPrefix` matcher)
   - sender clients (`REMOTE_TUNNEL_WSS_PATH_PREFIX`)
+  - nginx tunnel location path
+- `wstunnel-restrictions.yaml` is mounted with `--restrict-config` to allow only expected reverse tunnel listeners:
+  - protocol: `Tcp`
+  - server bind CIDR: `127.0.0.1/32`, `::1/128`
+  - remote port range: `22000..22999`
 - Use a long random `<secret>` suffix and rotate it if exposure is suspected.

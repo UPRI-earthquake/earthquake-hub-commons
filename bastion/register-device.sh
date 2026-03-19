@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_VERSION="2026-03-17.2"
+SCRIPT_VERSION="2026-03-19.1"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGISTRY_FILE_DEFAULT="/etc/upri/rshake-tunnels/devices.csv"
 PORT_RANGE_START_DEFAULT=22000
 PORT_RANGE_END_DEFAULT=22999
@@ -11,6 +12,10 @@ DEFAULT_LOCAL_PORT=22
 DEFAULT_KEY_PATH="/etc/upri/remote-tunnel/id_ed25519"
 DEFAULT_WSS_URL="${TUNNEL_WSS_URL:-}"
 DEFAULT_WSS_PATH_PREFIX="$(echo "${TUNNEL_WSS_PATH_PREFIX:-}" | sed 's#^/*##; s#/*$##')"
+DEFAULT_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY="${TUNNEL_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY:-}"
+DEFAULT_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY_FILE="${TUNNEL_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY_FILE:-$SCRIPT_DIR/ssh/operator-remote-actions_id_ed25519.pub}"
+DEFAULT_OPERATOR_SSH_PUBLIC_KEY="${TUNNEL_OPERATOR_SSH_PUBLIC_KEY:-}"
+DEFAULT_OPERATOR_SSH_PUBLIC_KEY_FILE="${TUNNEL_OPERATOR_SSH_PUBLIC_KEY_FILE:-$SCRIPT_DIR/ssh/operator-shell_id_ed25519.pub}"
 
 REGISTRY_HEADER="device_id,bastion_user,remote_port,status,key_fingerprint,created_at,revoked_at"
 
@@ -24,6 +29,10 @@ port_range_start="$PORT_RANGE_START_DEFAULT"
 port_range_end="$PORT_RANGE_END_DEFAULT"
 public_key_raw=""
 public_key_file=""
+remote_actions_operator_public_key_raw="$DEFAULT_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY"
+remote_actions_operator_public_key_file="$DEFAULT_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY_FILE"
+operator_ssh_public_key_raw="$DEFAULT_OPERATOR_SSH_PUBLIC_KEY"
+operator_ssh_public_key_file="$DEFAULT_OPERATOR_SSH_PUBLIC_KEY_FILE"
 
 usage() {
   cat <<EOF_USAGE
@@ -39,6 +48,14 @@ Optional:
   --bastion-user <user>     Per-device bastion user (default: rt-<sanitized-device-id>)
   --bastion-port <port>     SSH port devices use to connect to bastion (default: $DEFAULT_BASTION_PORT)
   --remote-port <port>      Fixed reverse tunnel port (default: auto-allocate)
+  --remote-actions-operator-public-key <key>
+                            SSH public key provisioned on sender for forced-command remote actions
+  --remote-actions-operator-public-key-file <path>
+                            File containing SSH public key for forced-command remote actions
+  --operator-ssh-public-key <key>
+                            SSH public key provisioned on device for passwordless shell login
+  --operator-ssh-public-key-file <path>
+                            File containing SSH public key provisioned on device for passwordless shell login
   --registry-file <path>    Registry CSV path (default: $REGISTRY_FILE_DEFAULT)
   --port-start <port>       Auto-allocation range start (default: $PORT_RANGE_START_DEFAULT)
   --port-end <port>         Auto-allocation range end (default: $PORT_RANGE_END_DEFAULT)
@@ -210,6 +227,50 @@ load_public_key() {
   rm -f "$tmp_key"
 }
 
+load_operator_ssh_public_key() {
+  local tmp_key
+
+  if [[ -z "$operator_ssh_public_key_raw" && -n "$operator_ssh_public_key_file" && -r "$operator_ssh_public_key_file" ]]; then
+    operator_ssh_public_key_raw="$(head -n 1 "$operator_ssh_public_key_file" | tr -d '\r')"
+  fi
+
+  operator_ssh_public_key_raw="$(printf '%s' "$operator_ssh_public_key_raw" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+  if [[ -z "$operator_ssh_public_key_raw" ]]; then
+    echo "[WARN] Operator shell SSH public key is not set; sender will not provision passwordless bastion shell login." >&2
+    return 0
+  fi
+
+  tmp_key="$(mktemp /tmp/rshake-op-pubkey.XXXXXX)"
+  printf '%s\n' "$operator_ssh_public_key_raw" > "$tmp_key"
+  if ! ssh-keygen -lf "$tmp_key" >/dev/null 2>&1; then
+    rm -f "$tmp_key"
+    fail "Invalid operator SSH public key."
+  fi
+  rm -f "$tmp_key"
+}
+
+load_remote_actions_operator_public_key() {
+  local tmp_key
+
+  if [[ -z "$remote_actions_operator_public_key_raw" && -n "$remote_actions_operator_public_key_file" && -r "$remote_actions_operator_public_key_file" ]]; then
+    remote_actions_operator_public_key_raw="$(head -n 1 "$remote_actions_operator_public_key_file" | tr -d '\r')"
+  fi
+
+  remote_actions_operator_public_key_raw="$(printf '%s' "$remote_actions_operator_public_key_raw" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+  if [[ -z "$remote_actions_operator_public_key_raw" ]]; then
+    echo "[WARN] Remote-actions operator SSH public key is not set; sender will not provision forced-command remote actions access." >&2
+    return 0
+  fi
+
+  tmp_key="$(mktemp /tmp/rshake-remote-actions-op-pubkey.XXXXXX)"
+  printf '%s\n' "$remote_actions_operator_public_key_raw" > "$tmp_key"
+  if ! ssh-keygen -lf "$tmp_key" >/dev/null 2>&1; then
+    rm -f "$tmp_key"
+    fail "Invalid remote-actions operator SSH public key."
+  fi
+  rm -f "$tmp_key"
+}
+
 emit_device_env_snippet() {
   cat <<EOF_ENV
 REMOTE_TUNNEL_ENABLED=true
@@ -225,6 +286,12 @@ REMOTE_TUNNEL_WSS_URL=${DEFAULT_WSS_URL}
 REMOTE_TUNNEL_WSS_PATH_PREFIX=${DEFAULT_WSS_PATH_PREFIX}
 REMOTE_TUNNEL_STATE_FILE=/var/lib/upri-sender/remote-tunnel-state.json
 EOF_ENV
+  if [[ -n "$remote_actions_operator_public_key_raw" ]]; then
+    printf 'REMOTE_TUNNEL_OPERATOR_PUBLIC_KEY=%s\n' "$remote_actions_operator_public_key_raw"
+  fi
+  if [[ -n "$operator_ssh_public_key_raw" ]]; then
+    printf 'REMOTE_TUNNEL_OPERATOR_SSH_PUBLIC_KEY=%s\n' "$operator_ssh_public_key_raw"
+  fi
 }
 
 parse_args() {
@@ -240,6 +307,14 @@ parse_args() {
         bastion_user="${2:-}"; shift 2 ;;
       --remote-port)
         remote_port="${2:-}"; shift 2 ;;
+      --remote-actions-operator-public-key)
+        remote_actions_operator_public_key_raw="${2:-}"; shift 2 ;;
+      --remote-actions-operator-public-key-file)
+        remote_actions_operator_public_key_file="${2:-}"; shift 2 ;;
+      --operator-ssh-public-key)
+        operator_ssh_public_key_raw="${2:-}"; shift 2 ;;
+      --operator-ssh-public-key-file)
+        operator_ssh_public_key_file="${2:-}"; shift 2 ;;
       --public-key)
         public_key_raw="${2:-}"; shift 2 ;;
       --public-key-file)
@@ -281,6 +356,8 @@ main() {
   (( port_range_start <= port_range_end )) || fail "--port-start must be <= --port-end."
 
   load_public_key
+  load_remote_actions_operator_public_key
+  load_operator_ssh_public_key
   ensure_registry_file
 
   existing_row="$(registry_get_row_by_device || true)"

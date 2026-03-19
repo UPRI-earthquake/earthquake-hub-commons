@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_VERSION="2026-03-17.2"
+SCRIPT_VERSION="2026-03-19.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
@@ -13,6 +13,7 @@ Commands:
   REGISTER_DEVICE Register/update a device tunnel mapping
   REVOKE_DEVICE   Revoke a device tunnel mapping
   LIST_DEVICES    List registered devices
+  RESOLVE_DEVICE  Resolve one device mapping state (machine-readable)
   CONNECT_DEVICE  Resolve device port then run SSH to device (equivalent to ssh -p <port> <user>@127.0.0.1)
   VERSION         Print version
   HELP            Show this help
@@ -23,6 +24,7 @@ Examples:
   sudo ./bastion.sh REVOKE_DEVICE --device-id AM_RF47F
   sudo ./bastion.sh REVOKE_DEVICE --device-id AM_RF47F --terminate-active
   ./bastion.sh LIST_DEVICES --active-only
+  ./bastion.sh RESOLVE_DEVICE --device-id AM_RF47F
   ./bastion.sh CONNECT_DEVICE --device-id AM_RF47F
 EOF_USAGE
 }
@@ -57,6 +59,10 @@ main() {
     LIST_DEVICES|list-devices|LIST|list)
       require_script "$SCRIPT_DIR/list-devices.sh"
       exec "$SCRIPT_DIR/list-devices.sh" "$@"
+      ;;
+    RESOLVE_DEVICE|resolve-device|RESOLVE|resolve)
+      require_script "$SCRIPT_DIR/resolve-device.sh"
+      exec "$SCRIPT_DIR/resolve-device.sh" "$@"
       ;;
     CONNECT_DEVICE|connect-device|CONNECT|connect)
       require_script "$SCRIPT_DIR/connect-device.sh"

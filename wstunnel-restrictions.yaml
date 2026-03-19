@@ -1,0 +1,24 @@
+# WSTunnel server restriction policy for sender reverse tunnels.
+# Keep this in sync with bastion/register-device.sh defaults:
+#   PORT_RANGE_START_DEFAULT=22000
+#   PORT_RANGE_END_DEFAULT=22999
+#
+# Path-prefix auth is enforced via this restriction matcher.
+# Keep this exact prefix aligned with:
+#   - TUNNEL_WSS_PATH_PREFIX
+#   - nginx tunnel location path
+
+restrictions:
+  - name: "Allow sender reverse tunnel listeners"
+    description: "Allow reverse TCP listeners on localhost in assigned sender port range."
+    match:
+      - !PathPrefix "^api/ws-tunnel/change-me$"
+    allow:
+      - !ReverseTunnel
+        protocol:
+          - Tcp
+        port:
+          - 22000..22999
+        cidr:
+          - 127.0.0.1/32
+          - ::1/128
