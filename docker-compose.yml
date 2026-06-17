@@ -158,6 +158,8 @@ services:
       COMMENTS_DEFAULT_STATUS: ${COMMENTS_DEFAULT_STATUS:-approved}
       REPORT_POST_RATE_LIMIT_WINDOW_MS: ${REPORT_POST_RATE_LIMIT_WINDOW_MS:-900000}
       REPORT_POST_RATE_LIMIT_MAX: ${REPORT_POST_RATE_LIMIT_MAX:-10}
+      UPLOAD_DIR: ${UPLOAD_DIR}
+      UPLOAD_PUBLIC_PATH: ${UPLOAD_PUBLIC_PATH:-/uploads}
 
       # email delivery
       EMAIL_TRANSPORT: ${EMAIL_TRANSPORT}
@@ -222,6 +224,9 @@ services:
         source: ./bastion
         target: /opt/upri/bastion
         read_only: true
+      - type: bind
+        source: ${UPLOAD_HOST_DIR:-./backend-uploads}
+        target: ${UPLOAD_DIR:-/app/public/uploads}
     depends_on:
       - "mongodb"
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
