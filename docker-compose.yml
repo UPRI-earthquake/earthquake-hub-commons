@@ -44,6 +44,14 @@ services:
       - ./https_data/certbot/conf:/etc/letsencrypt:rw          # Run the following command to renew the certificates:
       - ./https_data/certbot/www:/var/www/certbot:rw           #   docker compose run --rm certbot renew
 
+  upload-permissions:
+    image: alpine:3.20
+    command: sh -c "mkdir -p /uploads && chown -R 1000:1000 /uploads && chmod -R u+rwX,go+rX /uploads"
+    volumes:
+      - type: bind
+        source: ${UPLOAD_HOST_DIR:-./backend-uploads}
+        target: /uploads
+
   ehub-frontend:
     container_name: ehub-frontend
     environment: # load env vars from docker compose --env-file
@@ -228,7 +236,10 @@ services:
         source: ${UPLOAD_HOST_DIR:-./backend-uploads}
         target: ${UPLOAD_DIR:-/app/public/uploads}
     depends_on:
-      - "mongodb"
+      mongodb:
+        condition: service_started
+      upload-permissions:
+        condition: service_completed_successfully
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
     expose:
       - "5000"

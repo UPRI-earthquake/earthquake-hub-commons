@@ -32,6 +32,14 @@ services:
 #      - ./https_data/certbot/conf:/etc/letsencrypt:rw
 #      - ./https_data/certbot/www:/var/www/certbot:rw
 
+  upload-permissions-dep-test:
+    image: alpine:3.20
+    command: sh -c "mkdir -p /uploads && chown -R 1000:1000 /uploads && chmod -R u+rwX,go+rX /uploads"
+    volumes:
+      - type: bind
+        source: ${UPLOAD_HOST_DIR:-./backend-uploads}
+        target: /uploads
+
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
     environment:
@@ -220,7 +228,10 @@ services:
         source: ${UPLOAD_HOST_DIR:-./backend-uploads}
         target: ${UPLOAD_DIR:-/app/public/uploads}
     depends_on:
-      - "mongodb-dep-test"
+      mongodb-dep-test:
+        condition: service_started
+      upload-permissions-dep-test:
+        condition: service_completed_successfully
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
     expose:
       - "5000"

@@ -12,6 +12,9 @@ https_data/certbot/conf/live/
 https_data/certbot/conf/renewal/
 https_data/certbot/www/
 
+# Report image uploads persisted by the backend bind mount
+backend-uploads/
+
 # Host-specific nginx overrides (keep the canonical .conf files tracked)
 https_data/nginx.d/*.local*
 https_data/nginx.dep-test.d/*.local*
