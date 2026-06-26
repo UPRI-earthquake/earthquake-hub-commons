@@ -15,6 +15,9 @@ Commands:
   LIST_DEVICES    List registered devices
   RESOLVE_DEVICE  Resolve one device mapping state (machine-readable)
   CONNECT_DEVICE  Resolve device port then run SSH to device (equivalent to ssh -p <port> <user>@127.0.0.1)
+  PRINT_HOST_KEY  Print TUNNEL_BASTION_HOST_KEY for a public bastion host
+  PRINT_WSTUNNEL_CONFIG
+                 Print a suggested WSTunnel secret and matching config snippets
   VERSION         Print version
   HELP            Show this help
 
@@ -26,6 +29,8 @@ Examples:
   ./bastion.sh LIST_DEVICES --active-only
   ./bastion.sh RESOLVE_DEVICE --device-id AM_RF47F
   ./bastion.sh CONNECT_DEVICE --device-id AM_RF47F
+  ./bastion.sh PRINT_HOST_KEY --public-bastion-host earthquake.up.edu.ph
+  ./bastion.sh PRINT_WSTUNNEL_CONFIG
 EOF_USAGE
 }
 
@@ -67,6 +72,14 @@ main() {
     CONNECT_DEVICE|connect-device|CONNECT|connect)
       require_script "$SCRIPT_DIR/connect-device.sh"
       exec "$SCRIPT_DIR/connect-device.sh" "$@"
+      ;;
+    PRINT_HOST_KEY|print-host-key|PRINT_BASTION_HOST_KEY|print-bastion-host-key)
+      require_script "$SCRIPT_DIR/print-bastion-host-key.sh"
+      exec "$SCRIPT_DIR/print-bastion-host-key.sh" "$@"
+      ;;
+    PRINT_WSTUNNEL_CONFIG|print-wstunnel-config|PRINT_WSTUNNEL_SECRET|print-wstunnel-secret)
+      require_script "$SCRIPT_DIR/print-wstunnel-config.sh"
+      exec "$SCRIPT_DIR/print-wstunnel-config.sh" "$@"
       ;;
     VERSION|--version|-v)
       echo "$(basename "$0") $SCRIPT_VERSION"

@@ -83,6 +83,39 @@ When `ehub-backend` runs in Docker, execute tunnel scripts on the bastion host v
    - `WSTUNNEL_SERVER_VERSION=v10.5.2`
 4. Restart backend container.
 
+### New Server Tunnel Setup Checklist
+
+On a fresh deployment host, complete these checks before testing device remote actions from the web UI:
+
+1. Bootstrap the host-side bastion assets:
+   - `cd /path/to/earthquake-hub-commons`
+   - `sudo ./bastion/setup-host.sh`
+   - If the backend container does not run as `1000:1000`, rerun with `--backend-container-uid <uid> --backend-container-gid <gid>`.
+2. Confirm the backend SSH key can authenticate as `tunnel-admin` on the host:
+   - `sudo test -s /opt/upri/bastion/ssh/tunnel-admin_id_ed25519`
+   - `sudo grep -Fx "$(sudo cat /opt/upri/bastion/ssh/tunnel-admin_id_ed25519.pub)" /home/tunnel-admin/.ssh/authorized_keys`
+   - `sudo -u tunnel-admin sudo -n /opt/upri/bastion/resolve-device.sh --version`
+3. Confirm Compose can mount the synced SSH material into `ehub-backend`:
+   - `ls -l ./bastion/ssh/tunnel-admin_id_ed25519 ./bastion/ssh/known_hosts`
+   - `docker compose exec ehub-backend sh -lc 'test -r /opt/upri/bastion/ssh/tunnel-admin_id_ed25519 && test -r /opt/upri/bastion/ssh/known_hosts'`
+4. Restart `ehub-backend` after any bastion SSH material or `.env` change:
+   - `docker compose up -d ehub-backend`
+5. Set enrollment metadata returned to sender devices:
+   - `TUNNEL_BASTION_HOST=<public bastion host>`
+   - `TUNNEL_BASTION_PORT=22`
+   - `TUNNEL_BASTION_HOST_KEY=<known_hosts line for the public bastion host>`
+   - Generate `TUNNEL_BASTION_HOST_KEY` on the bastion host:
+     - `bastion-tunnel PRINT_HOST_KEY --public-bastion-host <public bastion host>`
+   - Remote fallback: `ssh-keyscan -t ed25519 <public bastion host>` (verify this out-of-band before trusting it).
+6. Keep the WSTunnel prefix exactly aligned across:
+   - `.env`: `TUNNEL_WSS_PATH_PREFIX=api/ws-tunnel/<secret>`
+   - `wstunnel-restrictions.yaml`: `!PathPrefix "^api/ws-tunnel/<secret>$"`
+   - nginx: `location ^~ /api/ws-tunnel/<secret>/`
+   - To generate a suggested secret and matching snippets:
+     - `bastion-tunnel PRINT_WSTUNNEL_CONFIG`
+
+If the UI shows `tunnel-admin@host.docker.internal: Permission denied (publickey)`, fix checklist items 1-4 first. That error happens before WSTunnel is involved and before the sender receives `TUNNEL_BASTION_HOST_KEY`.
+
 ## WSTunnel Edge Hardening
 
 - The deployment compose stack includes `wstunnel-server` behind nginx at `/api/ws-tunnel/`.

@@ -10,6 +10,8 @@ Scripts:
 - `list-devices.sh`
 - `connect-device.sh`
 - `resolve-device.sh`
+- `print-bastion-host-key.sh`
+- `print-wstunnel-config.sh`
 
 Registry source of truth:
 - `/etc/upri/rshake-tunnels/devices.csv`
@@ -61,6 +63,23 @@ Default synced ownership is `1000:1000` (backend container `node` user). Overrid
 - `sudo ./bastion/setup-host.sh --backend-container-uid <uid> --backend-container-gid <gid>`
 `setup-host.sh` also writes both plain-host and `[host]:port` entries into `known_hosts` to avoid strict-host-checking mismatches.
 
+### Verify backend SSH access
+
+When the web UI reports `tunnel-admin@host.docker.internal: Permission denied (publickey)`, the backend container reached the host SSH server but the host rejected the mounted private key. Re-run or verify the host bootstrap before debugging WSTunnel:
+
+```bash
+cd /path/to/earthquake-hub-commons
+sudo ./bastion/setup-host.sh
+sudo test -s /opt/upri/bastion/ssh/tunnel-admin_id_ed25519
+sudo grep -Fx "$(sudo cat /opt/upri/bastion/ssh/tunnel-admin_id_ed25519.pub)" /home/tunnel-admin/.ssh/authorized_keys
+sudo -u tunnel-admin sudo -n /opt/upri/bastion/resolve-device.sh --version
+ls -l ./bastion/ssh/tunnel-admin_id_ed25519 ./bastion/ssh/known_hosts
+docker compose exec ehub-backend sh -lc 'test -r /opt/upri/bastion/ssh/tunnel-admin_id_ed25519 && test -r /opt/upri/bastion/ssh/known_hosts'
+docker compose up -d ehub-backend
+```
+
+`TUNNEL_BASTION_HOST_KEY` and `TUNNEL_WSS_PATH_PREFIX` are still required for successful device enrollment and tunnel transport, but they do not cause this host-side `publickey` rejection.
+
 ## Command Wrapper (Sender-like Flow)
 After setup, use sender-style command dispatch:
 
@@ -71,6 +90,8 @@ sudo bastion-tunnel REVOKE_DEVICE --device-id AM_RF47F
 sudo bastion-tunnel REVOKE_DEVICE --device-id AM_RF47F --terminate-active
 bastion-tunnel RESOLVE_DEVICE --device-id AM_RF47F
 bastion-tunnel CONNECT_DEVICE --device-id AM_RF47F
+bastion-tunnel PRINT_HOST_KEY --public-bastion-host earthquake.up.edu.ph
+bastion-tunnel PRINT_WSTUNNEL_CONFIG
 ```
 
 Note:

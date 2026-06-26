@@ -145,6 +145,8 @@ install_scripts() {
     "list-devices.sh"
     "connect-device.sh"
     "resolve-device.sh"
+    "print-bastion-host-key.sh"
+    "print-wstunnel-config.sh"
     "bastion.sh"
     "setup-host.sh"
   )
@@ -432,6 +434,8 @@ Installed scripts:
   $install_dir/list-devices.sh
   $install_dir/connect-device.sh
   $install_dir/resolve-device.sh
+  $install_dir/print-bastion-host-key.sh
+  $install_dir/print-wstunnel-config.sh
   $install_dir/bastion.sh
 
 Backend env recommendation:
@@ -498,6 +502,8 @@ EOF_SYNC
     echo "  sudo $launcher_path CONNECT_DEVICE --device-id <id> --dry-run"
   fi
   echo "  sudo -u $tunnel_admin_user sudo -n $install_dir/register-device.sh --version"
+  echo "  $launcher_path PRINT_HOST_KEY --public-bastion-host <public-host>"
+  echo "  $launcher_path PRINT_WSTUNNEL_CONFIG"
 }
 
 main() {
