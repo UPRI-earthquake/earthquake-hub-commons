@@ -1,4 +1,6 @@
 *.swp
+__pycache__/
+*.pyc
 
 .dep-test.env
 .env
