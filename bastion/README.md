@@ -10,6 +10,7 @@ Scripts:
 - `list-devices.sh`
 - `connect-device.sh`
 - `resolve-device.sh`
+- `check-wstunnel.sh`
 - `print-bastion-host-key.sh`
 - `print-wstunnel-config.sh`
 
@@ -90,6 +91,7 @@ sudo bastion-tunnel REVOKE_DEVICE --device-id AM_RF47F
 sudo bastion-tunnel REVOKE_DEVICE --device-id AM_RF47F --terminate-active
 bastion-tunnel RESOLVE_DEVICE --device-id AM_RF47F
 bastion-tunnel CONNECT_DEVICE --device-id AM_RF47F
+bastion-tunnel CHECK_WSTUNNEL --compose-dir /path/to/earthquake-hub-commons --remote-port 22000
 bastion-tunnel PRINT_HOST_KEY --public-bastion-host earthquake.up.edu.ph
 bastion-tunnel PRINT_WSTUNNEL_CONFIG
 ```
@@ -98,6 +100,7 @@ Note:
 - `REGISTER_DEVICE` and `REVOKE_DEVICE` remain privileged operations (`sudo` required).
 - `LIST_DEVICES` and `CONNECT_DEVICE` are non-root after setup configures group access.
 - `RESOLVE_DEVICE` is also available for non-root operators after setup.
+- `CHECK_WSTUNNEL` is read-only. It checks local templates, nginx runtime config, nginx-to-WSTunnel reachability, recent WSTunnel restriction errors, optional assigned listener state, and UFW visibility when allowed.
 - Re-login once after setup to pick up new group membership.
 - `REVOKE_DEVICE --terminate-active` additionally tries to kill an already-established tunnel listener on the assigned port.
 

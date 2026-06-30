@@ -145,6 +145,7 @@ install_scripts() {
     "list-devices.sh"
     "connect-device.sh"
     "resolve-device.sh"
+    "check-wstunnel.sh"
     "print-bastion-host-key.sh"
     "print-wstunnel-config.sh"
     "bastion.sh"
@@ -434,6 +435,7 @@ Installed scripts:
   $install_dir/list-devices.sh
   $install_dir/connect-device.sh
   $install_dir/resolve-device.sh
+  $install_dir/check-wstunnel.sh
   $install_dir/print-bastion-host-key.sh
   $install_dir/print-wstunnel-config.sh
   $install_dir/bastion.sh
@@ -497,9 +499,11 @@ EOF_SYNC
   if [[ "$skip_ops_group" == "false" ]]; then
     echo "  $launcher_path LIST_DEVICES"
     echo "  $launcher_path CONNECT_DEVICE --device-id <id> --dry-run"
+    echo "  $launcher_path CHECK_WSTUNNEL --compose-dir <earthquake-hub-commons> --remote-port <port>"
   else
     echo "  sudo $launcher_path LIST_DEVICES"
     echo "  sudo $launcher_path CONNECT_DEVICE --device-id <id> --dry-run"
+    echo "  sudo $launcher_path CHECK_WSTUNNEL --compose-dir <earthquake-hub-commons> --remote-port <port>"
   fi
   echo "  sudo -u $tunnel_admin_user sudo -n $install_dir/register-device.sh --version"
   echo "  $launcher_path PRINT_HOST_KEY --public-bastion-host <public-host>"
