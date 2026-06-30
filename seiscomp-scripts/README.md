@@ -11,12 +11,13 @@ It uses supported SeisComP CLI tools rather than editing SeisComP internals.
 
 Supported first milestone:
 
-- one station per command
+- one station per command or conservative CSV batch mode
 - Raspberry Shake `AM.*` stations
 - default UPRI bindings
 - local StationXML files or direct download from the Raspberry Shake FDSN
   station service
 - dry-run validation
+- compare/diff reporting for metadata refresh checks
 - backups before replacement
 
 The importer does not upgrade SeisComP and does not restart running SeisComP
@@ -86,16 +87,63 @@ Run without changing active SeisComP files:
 ./inventory_import.py --network AM --station R1382 --source-file /path/to/AM.R1382.stationxml --dry-run
 ```
 
+Production-safe validation on the deployment server:
+
+```sh
+./inventory_import.py --network AM --station R1382 --production-dry-run --seiscomp-root /home/seismin/seiscomp
+```
+
+Compare generated metadata against the current imported inventory:
+
+```sh
+./inventory_import.py --network AM --station R1382 --compare-only --show-diff
+```
+
+Diff output is capped by default. Use `--max-diff-lines 0 --max-diff-chars 0`
+only when you need the full generated XML diff.
+
+Refresh an existing station after reviewing the diff:
+
+```sh
+./inventory_import.py --network AM --station R1382 --refresh --force
+```
+
 Make full inventory pool validation fatal:
 
 ```sh
 ./inventory_import.py --network AM --station R1382 --source-file /path/to/AM.R1382.stationxml --strict-pool-check
 ```
 
+Skip the full inventory pool check for quieter routine dry runs:
+
+```sh
+./inventory_import.py --network AM --station R1382 --production-dry-run --skip-pool-check
+```
+
 Replace existing inventory/key files after review:
 
 ```sh
 ./inventory_import.py --network AM --station R1382 --source-file /path/to/AM.R1382.stationxml --force
+```
+
+Batch dry run from CSV:
+
+```sh
+./inventory_import.py --batch-file stations.csv --dry-run
+```
+
+Batch apply requires explicit confirmation:
+
+```sh
+./inventory_import.py --batch-file stations.csv --batch-apply
+```
+
+CSV format:
+
+```csv
+network,station,location,source_file,binding_template
+AM,R1382,00,,
+AM,R40BD,00,/home/seismin/metadata/AM.R40BD.stationxml,
 ```
 
 Skip the final `seiscomp update-config` commands:
@@ -118,8 +166,8 @@ import_inv fdsnxml input.stationxml output.xml
 
 6. Runs `scinv check` on the converted XML.
 7. Builds a temporary staged inventory pool and runs `scinv check` against it.
-8. Runs `scinv sync --test` against the staged inventory pool unless
-   `--skip-sync-test` is set.
+8. Runs `scinv sync --test` against the staged inventory pool if the staged
+   pool check passes, unless `--skip-sync-test` is set.
 9. Writes the converted inventory XML to:
 
 ```txt
@@ -149,10 +197,16 @@ The second command is skipped when `RUN_FULL_UPDATE_CONFIG=false` or
 - Replaced files are backed up with a `.bak-YYYYMMDD-HHMMSS` suffix.
 - Active SeisComP files are not touched until conversion and validation pass.
 - `--dry-run` performs validation and reports planned file changes.
+- `--production-dry-run` is an alias for a server-safe dry run.
+- `--compare-only` generates and compares output without writing or applying.
 - The converted station file must pass `scinv check`.
 - Full inventory pool validation is advisory by default because existing
   deployments can have unrelated legacy inventory warnings or conflicts. Use
   `--strict-pool-check` to make full-pool issues fatal.
+- Full validation output is suppressed by default for readability. Use
+  `--verbose` to print SeisComP command output.
+- Batch mode requires `--dry-run`, `--compare-only`, or explicit
+  `--batch-apply`.
 
 ### Operational Notes
 
@@ -170,3 +224,6 @@ seiscomp restart seedlink slarchive slmon scautopick
 
 The importer has been designed for the current SeisComP 6.x command set. Major
 SeisComP upgrades should re-validate this workflow before production use.
+
+See `RUNBOOK-seiscomp-inventory-import.md` for the recommended production
+workflow.
