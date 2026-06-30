@@ -78,7 +78,7 @@ When `ehub-backend` runs in Docker, execute tunnel scripts on the bastion host v
    - `TUNNEL_REMOTE_ACTION_TIMEOUT_MS=20000`
    - `TUNNEL_OPERATOR_SSH_PUBLIC_KEY=<optional fallback>`
    - `TUNNEL_REMOTE_ACTIONS_OPERATOR_PUBLIC_KEY=<optional fallback>`
-   - `TUNNEL_WSS_URL=wss://earthquake.science.upd.edu.ph`
+   - `TUNNEL_WSS_URL=wss://earthquake.up.edu.ph`
    - `TUNNEL_WSS_PATH_PREFIX=api/ws-tunnel/<secret>`
    - `WSTUNNEL_SERVER_VERSION=v10.5.2`
 4. Restart backend container.

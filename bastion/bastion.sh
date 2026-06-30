@@ -24,7 +24,7 @@ Commands:
 
 Examples:
   sudo ./bastion.sh SETUP_HOST
-  sudo ./bastion.sh REGISTER_DEVICE --device-id AM_RF47F --bastion-host earthquake.science.upd.edu.ph --public-key-file /etc/upri/remote-tunnel/id_ed25519.pub
+  sudo ./bastion.sh REGISTER_DEVICE --device-id AM_RF47F --bastion-host earthquake.up.edu.ph --public-key-file /etc/upri/remote-tunnel/id_ed25519.pub
   sudo ./bastion.sh REVOKE_DEVICE --device-id AM_RF47F
   sudo ./bastion.sh REVOKE_DEVICE --device-id AM_RF47F --terminate-active
   ./bastion.sh LIST_DEVICES --active-only
