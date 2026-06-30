@@ -3,16 +3,16 @@
 #   PORT_RANGE_START_DEFAULT=22000
 #   PORT_RANGE_END_DEFAULT=22999
 #
-# Path-prefix auth is enforced via this restriction matcher.
-# Keep this exact prefix aligned with:
-#   - TUNNEL_WSS_PATH_PREFIX
-#   - nginx tunnel location path
+# Path-prefix auth is enforced at the nginx tunnel location.
+# This restriction file intentionally allows any matched HTTP-upgrade path after
+# nginx routing, then limits the reverse tunnel destination to localhost ports
+# assigned by bastion/register-device.sh.
 
 restrictions:
   - name: "Allow sender reverse tunnel listeners"
     description: "Allow reverse TCP listeners on localhost in assigned sender port range."
     match:
-      - !PathPrefix "^api/ws-tunnel/change-me$"
+      - !Any
     allow:
       - !ReverseTunnel
         protocol:

@@ -107,12 +107,13 @@ On a fresh deployment host, complete these checks before testing device remote a
    - Generate `TUNNEL_BASTION_HOST_KEY` on the bastion host:
      - `bastion-tunnel PRINT_HOST_KEY --public-bastion-host <public bastion host>`
    - Remote fallback: `ssh-keyscan -t ed25519 <public bastion host>` (verify this out-of-band before trusting it).
-6. Keep the WSTunnel prefix exactly aligned across:
+6. Keep the WSTunnel prefix aligned between backend enrollment metadata and nginx:
    - `.env`: `TUNNEL_WSS_PATH_PREFIX=api/ws-tunnel/<secret>`
-   - `wstunnel-restrictions.yaml`: `!PathPrefix "^api/ws-tunnel/<secret>$"`
    - nginx: `location ^~ /api/ws-tunnel/<secret>/`
-   - To generate a suggested secret and matching snippets:
+   - To generate a suggested secret and matching guidance:
      - `bastion-tunnel PRINT_WSTUNNEL_CONFIG`
+7. Check the WSTunnel edge path after changing nginx, firewall, or tunnel settings:
+   - `bastion-tunnel CHECK_WSTUNNEL --compose-dir <earthquake-hub-commons> --remote-port <assigned-port>`
 
 If the UI shows `tunnel-admin@host.docker.internal: Permission denied (publickey)`, fix checklist items 1-4 first. That error happens before WSTunnel is involved and before the sender receives `TUNNEL_BASTION_HOST_KEY`.
 
@@ -121,11 +122,41 @@ If the UI shows `tunnel-admin@host.docker.internal: Permission denied (publickey
 - The deployment compose stack includes `wstunnel-server` behind nginx at `/api/ws-tunnel/`.
 - `wstunnel-server` image tag is controlled by `WSTUNNEL_SERVER_VERSION` (default `v10.5.2`).
 - Keep `TUNNEL_WSS_PATH_PREFIX` aligned across:
-  - `wstunnel-restrictions.yaml` (`!PathPrefix` matcher)
+  - backend enrollment metadata (`TUNNEL_WSS_PATH_PREFIX`)
   - sender clients (`REMOTE_TUNNEL_WSS_PATH_PREFIX`)
   - nginx tunnel location path
+- Path-prefix secrecy is enforced by the nginx `location ^~ /api/ws-tunnel/<secret>/` block.
 - `wstunnel-restrictions.yaml` is mounted with `--restrict-config` to allow only expected reverse tunnel listeners:
+  - match: `!Any` after nginx has routed the secret path
   - protocol: `Tcp`
   - server bind CIDR: `127.0.0.1/32`, `::1/128`
   - remote port range: `22000..22999`
 - Use a long random `<secret>` suffix and rotate it if exposure is suspected.
+
+### WSTunnel Troubleshooting Map
+
+- `Invalid status code: 404` on the sender usually means nginx did not match the configured `/api/ws-tunnel/<secret>/` path.
+- `Invalid status code: 504` usually means nginx matched the path but could not reach `wstunnel-server` on host port `7001`.
+- `Invalid status code: 400` with WSTunnel logs showing `not allowed destination` means `wstunnel-restrictions.yaml` rejected the reverse tunnel destination.
+- `Invalid status code: 429` means nginx rate limiting is active, usually after a reconnect loop. Fix the root cause, restart the sender tunnel, or wait for the limit window to clear.
+- `bastion-tunnel LIST_DEVICES` showing `LISTENER down` means no listener exists yet on the assigned bastion port, for example `127.0.0.1:22000`.
+- `LISTENER up` means WSTunnel created the reverse listener and `CONNECT_DEVICE` can try SSH.
+
+Useful checks:
+
+```bash
+bastion-tunnel CHECK_WSTUNNEL --compose-dir <earthquake-hub-commons> --remote-port <assigned-port>
+docker logs --tail 80 wstunnel-server
+docker exec nginx-proxy nginx -t
+docker exec nginx-proxy nginx -T | grep -n 'ws-tunnel'
+docker exec nginx-proxy sh -lc 'curl -v --connect-timeout 5 http://host.docker.internal:7001/ || true'
+ss -lnt "sport = :<assigned-port>"
+```
+
+The plain `curl` to `host.docker.internal:7001` should usually return `HTTP 400` with an `Invalid protocol request` body. That is expected because WSTunnel requires a WebSocket upgrade; it still proves nginx can reach the WSTunnel server.
+
+If the host firewall uses a default-drop input policy, allow the nginx Docker bridge/subnet to reach WSTunnel on host port `7001`. Example:
+
+```bash
+sudo ufw allow in on <docker-bridge> proto tcp from <docker-subnet> to any port 7001
+```

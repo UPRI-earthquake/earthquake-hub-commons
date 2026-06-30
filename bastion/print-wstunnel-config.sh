@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_VERSION="2026-06-26.1"
+SCRIPT_VERSION="2026-06-30.1"
 PATH_BASE_DEFAULT="api/ws-tunnel"
 SECRET_BYTES_DEFAULT=20
 
@@ -82,16 +82,27 @@ main() {
 Suggested WSTunnel path secret:
   $secret
 
-You may use this generated secret or generate your own. Keep the same prefix in all three places:
+You may use this generated secret or generate your own. Keep the same prefix in the backend environment and nginx tunnel location:
 
 .env:
   TUNNEL_WSS_PATH_PREFIX=$prefix
 
-wstunnel-restrictions.yaml:
-  - !PathPrefix "^${prefix}$"
-
 nginx:
   location ^~ /${prefix}/ {
+
+wstunnel-restrictions.yaml:
+  Keep match as !Any and restrict only the allowed reverse tunnel destination:
+    match:
+      - !Any
+    allow:
+      - !ReverseTunnel
+        protocol:
+          - Tcp
+        port:
+          - 22000..22999
+        cidr:
+          - 127.0.0.1/32
+          - ::1/128
 EOF_OUT
 }
 
