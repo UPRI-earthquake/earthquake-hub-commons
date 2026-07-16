@@ -82,10 +82,22 @@ services:
       app-network:
         ipv4_address: 172.21.0.2
 
+  admin-frontend:
+    container_name: admin-frontend
+    image: "ghcr.io/upri-earthquake/admin-frontend:latest"
+    profiles:
+      - admin
+    expose:
+      - "3000"
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.9
+
   ehub-backend:
     container_name: ehub-backend
     environment:
       NODE_ENV: production
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
@@ -166,6 +178,13 @@ services:
       COMMENTS_DEFAULT_STATUS: ${COMMENTS_DEFAULT_STATUS:-approved}
       REPORT_POST_RATE_LIMIT_WINDOW_MS: ${REPORT_POST_RATE_LIMIT_WINDOW_MS:-900000}
       REPORT_POST_RATE_LIMIT_MAX: ${REPORT_POST_RATE_LIMIT_MAX:-10}
+      ADMIN_AUTH_RATE_LIMIT_WINDOW_MS: ${ADMIN_AUTH_RATE_LIMIT_WINDOW_MS:-900000}
+      ADMIN_AUTH_RATE_LIMIT_IP_MAX: ${ADMIN_AUTH_RATE_LIMIT_IP_MAX:-30}
+      ADMIN_AUTH_RATE_LIMIT_IDENTIFIER_MAX: ${ADMIN_AUTH_RATE_LIMIT_IDENTIFIER_MAX:-5}
+      # Disabled unless a separately deployed, authenticated private adapter is configured.
+      ADMIN_HOST_TELEMETRY_URL: ${ADMIN_HOST_TELEMETRY_URL:-}
+      ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-}
+      ADMIN_HOST_TELEMETRY_TIMEOUT_MS: ${ADMIN_HOST_TELEMETRY_TIMEOUT_MS:-2500}
       UPLOAD_DIR: ${UPLOAD_DIR}
       UPLOAD_PUBLIC_PATH: ${UPLOAD_PUBLIC_PATH:-/uploads}
 
@@ -235,6 +254,10 @@ services:
       - type: bind
         source: ${UPLOAD_HOST_DIR:-./backend-uploads}
         target: ${UPLOAD_DIR:-/app/public/uploads}
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       mongodb:
         condition: service_started
@@ -281,7 +304,6 @@ services:
       app-network:
         ipv4_address: 172.21.0.5
 
-# TODO: Add admin-frontend
 # TODO: Add admin-backend
 
 # Geoserve is used to convert (long, lat) to city-names.

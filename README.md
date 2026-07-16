@@ -1,6 +1,12 @@
 # earthquake-hub-commons
 This repository integrates all the essential programs necessary for hosting a citizen science network of ground motion sensors (such as but not limited to raspberryshakes). It enables data transmission, archiving, and allows feeding the network data to earthquake detection software(such as but not limited to SeisComP).
 
+Admin operational references:
+
+- [Admin backend dep-test runbook](docs/admin-backend/runbook.md)
+- [Admin backend release checklist](docs/admin-backend/release-checklist.md)
+- Service contracts live with `earthquake-hub-admin-backend/docs/`.
+
 ## RShake Alert Endpoint
 - Nginx allows only `POST /api/messaging/restricted/rshake-alert` from the restricted messaging namespace.
 - Other `/api/messaging/restricted/*` paths remain denied at the proxy layer.
@@ -13,6 +19,49 @@ This repository integrates all the essential programs necessary for hosting a ci
 
 ## Deployment Testing
 Follow the instructions on Server Deployment via Docker Compose in our [documentation](https://upri-earthquake.github.io/ehub-commons).
+
+### Admin Console Dep-Test
+
+The dep-test compose file is the preferred local integration path for the admin console. It serves the admin frontend through nginx at `/admin/` and proxies admin API calls through `/api/admin/`.
+
+```bash
+COMPOSE_BAKE=false docker compose --env-file .dep-test.env \
+  -f docker-compose.dep-test.yml \
+  up --build -d nginx-proxy-dep-test
+```
+
+Open:
+
+```txt
+https://ehub.local/admin/login
+```
+
+Expected smoke checks:
+
+```bash
+curl -k -I https://ehub.local/admin/
+curl -k -i https://ehub.local/api/admin/profile
+```
+
+Before login, `/api/admin/profile` should return `401 Unauthorized`. A `404` means nginx or the backend admin route is not wired correctly.
+
+For the complete authenticated route, cookie, login, and logout check, provide a disposable dep-test account with the `admin` role and run:
+
+```bash
+ADMIN_SMOKE_IDENTIFIER=<admin-username-or-email> \
+ADMIN_SMOKE_PASSWORD=<admin-password> \
+./scripts/admin-dep-test-smoke.sh
+```
+
+The smoke script is read-only after login: it verifies all admin SPA routes and each page's read API. It does not invoke approval, moderation, device, tunnel, or other state-changing actions.
+
+Dep-test uses an isolated Docker subnet, `172.24.0.0/16`, to avoid clashing with the normal local compose network.
+
+### Admin Console Production Exposure
+
+Do not expose the admin console publicly.
+
+Production `/admin/` and `/api/admin/` routes should remain disabled until the approved VPN/internal CIDR is known. When enabling them, use nginx `allow` / `deny all` rules in the production config and keep admin APIs behind the same restriction.
 
 ## Email Branding Variables
 - `ehub-backend` now supports branded HTML email logo settings:

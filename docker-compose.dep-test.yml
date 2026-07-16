@@ -8,9 +8,11 @@ services:
     depends_on:
       - "earthquake-hub-backend-dep-test"
       - "earthquake-hub-frontend-dep-test"
+      - "admin-frontend-dep-test"
+      - "ringserver-dep-test"
     networks:
       app-network:
-        ipv4_address: 172.21.0.10
+        ipv4_address: 172.24.0.10
     ports:  # expose nginx ports to host
       - "80:80"
       - "443:443"
@@ -39,9 +41,14 @@ services:
       - type: bind
         source: ${UPLOAD_HOST_DIR:-./backend-uploads}
         target: /uploads
+    networks:
+      - app-network
 
   earthquake-hub-frontend-dep-test:
     container_name: earthquake-hub-frontend-dep-test
+    build:
+      context: ../../earthquake-hub-web-client/earthquake-hub-frontend
+      dockerfile: Dockerfile
     environment:
       REACT_APP_PUBLIC_VAPID_KEY: ${REACT_APP_PUBLIC_VAPID_KEY}
       # If REACT_APP_BACKEND is unset, derive from PUBLIC_SITE_ORIGIN.
@@ -61,7 +68,7 @@ services:
       REACT_APP_SEIS_DEMO_URL: ${REACT_APP_SEIS_DEMO_URL:-}
       REACT_APP_VERSION: ${REACT_APP_VERSION:-}
       REACT_APP_GA_MEASUREMENT_ID_DEV: ${REACT_APP_GA_MEASUREMENT_ID_DEV}
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:dep-test"
     depends_on:
       - "earthquake-hub-backend-dep-test"
     expose:
@@ -70,14 +77,65 @@ services:
        - "host.docker.internal:host-gateway"
     networks:
       app-network:
-        ipv4_address: 172.21.0.2
+        ipv4_address: 172.24.0.2
+
+  admin-frontend-dep-test:
+    container_name: admin-frontend-dep-test
+    build:
+      context: ../../earthquake-hub-admin/earthquake-hub-admin-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_ADMIN_API_BASE: ${VITE_ADMIN_API_BASE:-/api/admin}
+    image: "ghcr.io/upri-earthquake/admin-frontend:dep-test"
+    expose:
+      - "3000"
+    networks:
+      app-network:
+        ipv4_address: 172.24.0.9
+
+  admin-backend-dep-test:
+    container_name: admin-backend-dep-test
+    build:
+      context: ../../earthquake-hub-admin/earthquake-hub-admin-backend
+      dockerfile: Dockerfile
+    image: "ghcr.io/upri-earthquake/earthquake-hub-admin-backend:dep-test"
+    environment:
+      ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-dep-test-internal-only}
+      DEPLOYMENT_CHECK_URL: http://earthquake-hub-backend-dep-test:5000/
+      SEISCOMP_CHECK_URL: ${ADMIN_TELEMETRY_SEISCOMP_CHECK_URL:-http://host.docker.internal:8080/fdsnws/dataselect/1/version}
+      ARCHIVE_PATH: /archive
+      ARCHIVE_SOURCE_LABEL: Dep-test archive fixture
+      TELEMETRY_CHECK_TIMEOUT_MS: ${ADMIN_TELEMETRY_CHECK_TIMEOUT_MS:-1500}
+    volumes:
+      - type: bind
+        source: ${ADMIN_TELEMETRY_ARCHIVE_HOST_PATH:-./archive-telemetry-sample}
+        target: /archive
+        read_only: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=8m,mode=1777
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:5100/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      app-network:
+        ipv4_address: 172.24.0.11
 
   earthquake-hub-backend-dep-test:
     container_name: earthquake-hub-backend-dep-test
     environment: # load env vars from docker compose --env-file
       NODE_ENV: production
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
-      MONGO_HOST: ${MONGO_HOST}
+      MONGO_HOST: ${MONGO_HOST_DEP_TEST:-mongodb-dep-test}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
 
@@ -160,7 +218,13 @@ services:
       COMMENTS_DEFAULT_STATUS: ${COMMENTS_DEFAULT_STATUS:-approved}
       REPORT_POST_RATE_LIMIT_WINDOW_MS: ${REPORT_POST_RATE_LIMIT_WINDOW_MS:-900000}
       REPORT_POST_RATE_LIMIT_MAX: ${REPORT_POST_RATE_LIMIT_MAX:-10}
-      UPLOAD_DIR: ${UPLOAD_DIR}
+      ADMIN_AUTH_RATE_LIMIT_WINDOW_MS: ${ADMIN_AUTH_RATE_LIMIT_WINDOW_MS:-900000}
+      ADMIN_AUTH_RATE_LIMIT_IP_MAX: ${ADMIN_AUTH_RATE_LIMIT_IP_MAX:-30}
+      ADMIN_AUTH_RATE_LIMIT_IDENTIFIER_MAX: ${ADMIN_AUTH_RATE_LIMIT_IDENTIFIER_MAX:-5}
+      ADMIN_HOST_TELEMETRY_URL: http://admin-backend-dep-test:5100/v1
+      ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-dep-test-internal-only}
+      ADMIN_HOST_TELEMETRY_TIMEOUT_MS: ${ADMIN_HOST_TELEMETRY_TIMEOUT_MS:-2500}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/public/uploads}
       UPLOAD_PUBLIC_PATH: ${UPLOAD_PUBLIC_PATH:-/uploads}
 
       # email delivery
@@ -232,24 +296,36 @@ services:
         condition: service_started
       upload-permissions-dep-test:
         condition: service_completed_successfully
-    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
+      admin-backend-dep-test:
+        condition: service_healthy
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    build:
+      context: ../../earthquake-hub-web-client/earthquake-hub-backend
+      dockerfile: Dockerfile
+    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:dep-test"
     expose:
       - "5000"
     extra_hosts:
        - "host.docker.internal:host-gateway"
     networks:
       app-network:
-        ipv4_address: 172.21.0.3
+        ipv4_address: 172.24.0.3
 
   ringserver-dep-test:
     container_name: ringserver-dep-test
     image: "ghcr.io/upri-earthquake/receiver-ringserver:latest"
+    environment:
+      # Permit detailed monitoring only from the dep-test backend container.
+      RINGSERVER_TRUSTED_IPS: 172.24.0.3
     expose:
       - "16000"
       - "18000"
     networks:
       app-network:
-        ipv4_address: 172.21.0.4
+        ipv4_address: 172.24.0.4
     ports:
       - "16000:16000" # make host's 16000 connect to RS's 16000
     volumes:
@@ -272,11 +348,8 @@ services:
       - "127.0.0.1:27017:27017" # bind to loopback to avoid exposing mongo externally
     networks:
       app-network:
-        ipv4_address: 172.21.0.5
+        ipv4_address: 172.24.0.5
 
-
-# TODO: Add admin-frontend
-# TODO: Add admin-backend
 
 # Geoserve is used to convert (long, lat) to city-names.
 # The images are available as bare-metal builds in the server
@@ -284,6 +357,8 @@ services:
 # images takes a while
 #
   geoserve-db:
+    profiles:
+      - geoserve
     build:
       context: ../hazdev-geoserve-ws
       dockerfile: Dockerfile-db
@@ -307,9 +382,11 @@ services:
       - ../hazdev-geoserve-ws/data/pgdata:/var/lib/postgresqsl/data/pgdata
     networks:
       app-network:
-        ipv4_address: 172.21.0.6
+        ipv4_address: 172.24.0.6
 
   geoserve-ws:
+    profiles:
+      - geoserve
     build:
       context: ../hazdev-geoserve-ws
       dockerfile: Dockerfile-ws
@@ -327,7 +404,7 @@ services:
       - "80"
     networks:
       app-network:
-        ipv4_address: 172.21.0.7
+        ipv4_address: 172.24.0.7
 
 volumes:
   earthquake-hub-mongodb-data-dep-test:
@@ -340,4 +417,6 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.21.0.0/16
+        # Keep dep-test isolated from the normal local compose network
+        # earthquake-hub-network, which commonly uses 172.21.0.0/16.
+        - subnet: 172.24.0.0/16

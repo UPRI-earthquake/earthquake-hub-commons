@@ -26,8 +26,20 @@ if [[ ! -d "${auth_dir}" ]]; then
   cp -r /app/auth "${auth_dir}"
 fi
 
+# Compose variants use distinct private subnets. Keep the trusted monitoring
+# client explicit instead of trusting an entire Docker range.
+if [[ -n "${RINGSERVER_TRUSTED_IPS:-}" ]]; then
+  IFS=',' read -r -a trusted_ips <<< "${RINGSERVER_TRUSTED_IPS}"
+  for trusted_ip in "${trusted_ips[@]}"; do
+    trusted_ip="${trusted_ip//[[:space:]]/}"
+    [[ -z "${trusted_ip}" ]] && continue
+    if ! grep -Fq "TrustedIP ${trusted_ip}" "${ring_conf_file}"; then
+      printf '\nTrustedIP %s # Compose monitoring backend\n' "${trusted_ip}" >> "${ring_conf_file}"
+    fi
+  done
+fi
+
 echo "Configuration files and directories initialized."
 
 # Run ringserver
 /app/ringserver -vv "${ring_conf_file}"
-
