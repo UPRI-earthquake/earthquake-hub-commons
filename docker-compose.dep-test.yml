@@ -39,7 +39,9 @@ services:
     command: sh -c "mkdir -p /uploads && chown -R 1000:1000 /uploads && chmod -R u+rwX,go+rX /uploads"
     volumes:
       - type: bind
-        source: ${UPLOAD_HOST_DIR:-./backend-uploads}
+        # Dep-test reuses the web-client backend's development report images.
+        # Production intentionally uses its dedicated persistent backend-uploads path.
+        source: ${UPLOAD_HOST_DIR:-../../earthquake-hub-web-client/earthquake-hub-backend/public/uploads_dev}
         target: /uploads
     networks:
       - app-network
@@ -189,8 +191,8 @@ services:
       BACKEND_DEV_PORT: ${BACKEND_DEV_PORT:-}
 
       #ringserver host
-      RINGSERVER_HOST: ${RINGSERVER_HOST}
-      RINGSERVER_PORT: ${RINGSERVER_PORT}
+      RINGSERVER_HOST: ringserver-dep-test
+      RINGSERVER_PORT: ${RINGSERVER_PORT:-16000}
 
       # jsonwebtoken keys
       ACCESS_TOKEN_PRIVATE_KEY_WEB: ${ACCESS_TOKEN_PRIVATE_KEY_WEB}
@@ -289,7 +291,7 @@ services:
         target: /opt/upri/bastion
         read_only: true
       - type: bind
-        source: ${UPLOAD_HOST_DIR:-./backend-uploads}
+        source: ${UPLOAD_HOST_DIR:-../../earthquake-hub-web-client/earthquake-hub-backend/public/uploads_dev}
         target: ${UPLOAD_DIR:-/app/public/uploads}
     depends_on:
       mongodb-dep-test:
