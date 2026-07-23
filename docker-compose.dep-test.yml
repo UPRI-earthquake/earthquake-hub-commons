@@ -107,6 +107,11 @@ services:
       SEISCOMP_CHECK_URL: ${ADMIN_TELEMETRY_SEISCOMP_CHECK_URL:-http://host.docker.internal:8080/fdsnws/dataselect/1/version}
       ARCHIVE_PATH: /archive
       ARCHIVE_SOURCE_LABEL: Dep-test archive fixture
+      HOST_METRICS_SCOPE: dep-test-container
+      HOST_METRICS_SOURCE_LABEL: Dep-test admin adapter container
+      SERVER_FILESYSTEM_PATH: /
+      SERVER_FILESYSTEM_LABEL: Adapter container root (dep-test only)
+      HOST_CPU_SAMPLE_MS: ${ADMIN_HOST_CPU_SAMPLE_MS:-150}
       TELEMETRY_CHECK_TIMEOUT_MS: ${ADMIN_TELEMETRY_CHECK_TIMEOUT_MS:-1500}
     volumes:
       - type: bind

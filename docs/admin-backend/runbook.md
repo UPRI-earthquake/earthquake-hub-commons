@@ -28,6 +28,7 @@ docker inspect earthquake-hub-backend-dep-test --format '{{json .HostConfig.Bind
 docker exec admin-backend-dep-test sh -c 'wget -q --header="Authorization: Bearer ${ADMIN_HOST_TELEMETRY_TOKEN}" -O - http://127.0.0.1:5100/v1/deployment'
 docker exec admin-backend-dep-test sh -c 'wget -q --header="Authorization: Bearer ${ADMIN_HOST_TELEMETRY_TOKEN}" -O - http://127.0.0.1:5100/v1/seiscomp'
 docker exec admin-backend-dep-test sh -c 'wget -q --header="Authorization: Bearer ${ADMIN_HOST_TELEMETRY_TOKEN}" -O - http://127.0.0.1:5100/v1/archive'
+docker exec admin-backend-dep-test sh -c 'wget -q --header="Authorization: Bearer ${ADMIN_HOST_TELEMETRY_TOKEN}" -O - http://127.0.0.1:5100/v1/system'
 ```
 
 Deployment and Archive should be `available` after the stack is healthy. The local Archive result is explicitly labeled as the dep-test fixture. SeisComP is checked directly through `host.docker.internal:8080`; it should be `unavailable` when local FDSNWS is not running, and that expected partial failure must not block the other Overview sources.
