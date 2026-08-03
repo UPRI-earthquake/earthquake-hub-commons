@@ -4,6 +4,14 @@ This repository integrates all the essential programs necessary for hosting a ci
 Admin operational references:
 
 - [Admin backend dep-test runbook](docs/admin-backend/runbook.md)
+- [Admin backend production read-only runbook](docs/admin-backend/production-read-only-runbook.md)
+- [Actual-server Admin Console deployment test](docs/admin-backend/deployment-server-test.md)
+- [Admin deployment environment reference](docs/admin-backend/environment-reference.md)
+- [Admin Console release-safety runbook](docs/admin-backend/release-safety-runbook.md)
+- [Admin operational snapshot contract](docs/admin-backend/operational-snapshot-contract.md)
+- [Admin audit retention runbook](docs/admin-backend/audit-retention-runbook.md)
+- [Admin incident retention runbook](docs/admin-backend/incident-retention-runbook.md)
+- [Legacy session rollout runbook](docs/admin-backend/legacy-session-rollout.md)
 - [Admin backend release checklist](docs/admin-backend/release-checklist.md)
 - Service contracts live with `earthquake-hub-admin-backend/docs/`.
 
@@ -61,7 +69,24 @@ Dep-test uses an isolated Docker subnet, `172.24.0.0/16`, to avoid clashing with
 
 Do not expose the admin console publicly.
 
-Production `/admin/` and `/api/admin/` routes should remain disabled until the approved VPN/internal CIDR is known. When enabling them, use nginx `allow` / `deny all` rules in the production config and keep admin APIs behind the same restriction.
+Production `/admin/` and `/api/admin/` are tracked with fail-closed `deny all`
+behavior. Do not edit the tracked nginx file with a host-specific address. Use
+`scripts/configure-admin-access.sh` to generate validated `allow` directives
+only after an approved VPN/internal CIDR is known, then follow the release-safety
+runbook.
+
+The private `admin-backend` is not a browser-facing API and is independent of
+the `/admin/` exposure decision. Production Compose can start its read-only
+telemetry service under the `admin` profile after mTLS material and narrow
+filesystem markers are prepared. Follow the production read-only runbook; never
+route port 5100 through public nginx.
+
+For point-in-time WSTunnel listener evidence, the production runbook adds an
+optional host-native collector. It runs as a dedicated systemd identity, serves
+only a group-protected Unix socket, and reports only loopback listener ports in
+the fixed WSTunnel range. A registry mapping and an observed listener are
+separate facts; neither one proves latency, packet delivery, or continuous
+availability.
 
 ## Email Branding Variables
 - `ehub-backend` now supports branded HTML email logo settings:
