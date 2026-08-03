@@ -61,6 +61,7 @@ done
 
 api_routes=(
   /overview/snapshot
+  /incidents
   /accounts
   /devices-stations
   /earthquake-events

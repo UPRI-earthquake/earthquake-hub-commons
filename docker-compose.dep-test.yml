@@ -6,10 +6,14 @@ services:
     container_name: nginx-proxy-dep-test
     image: "nginx:stable"
     depends_on:
-      - "earthquake-hub-backend-dep-test"
-      - "earthquake-hub-frontend-dep-test"
-      - "admin-frontend-dep-test"
-      - "ringserver-dep-test"
+      earthquake-hub-backend-dep-test:
+        condition: service_healthy
+      earthquake-hub-frontend-dep-test:
+        condition: service_started
+      admin-frontend-dep-test:
+        condition: service_healthy
+      ringserver-dep-test:
+        condition: service_started
     networks:
       app-network:
         ipv4_address: 172.24.0.10
@@ -89,6 +93,22 @@ services:
       args:
         VITE_ADMIN_API_BASE: ${VITE_ADMIN_API_BASE:-/api/admin}
     image: "ghcr.io/upri-earthquake/admin-frontend:dep-test"
+    restart: unless-stopped
+    read_only: true
+    user: "101:101"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /var/cache/nginx:size=16m,mode=0700,uid=101,gid=101
+      - /var/run:size=1m,mode=0755,uid=101,gid=101
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3000/healthz"]
+      interval: 10s
+      timeout: 2s
+      retries: 6
+      start_period: 5s
     expose:
       - "3000"
     networks:
@@ -103,7 +123,9 @@ services:
     image: "ghcr.io/upri-earthquake/earthquake-hub-admin-backend:dep-test"
     environment:
       ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-dep-test-internal-only}
-      DEPLOYMENT_CHECK_URL: http://earthquake-hub-backend-dep-test:5000/
+      ADMIN_TELEMETRY_TLS_MODE: disabled
+      HEALTH_PORT: 5101
+      DEPLOYMENT_CHECK_URL: http://earthquake-hub-backend-dep-test:5000/health/ready
       SEISCOMP_CHECK_URL: ${ADMIN_TELEMETRY_SEISCOMP_CHECK_URL:-http://host.docker.internal:8080/fdsnws/dataselect/1/version}
       ARCHIVE_PATH: /archive
       ARCHIVE_SOURCE_LABEL: Dep-test archive fixture
@@ -126,7 +148,7 @@ services:
     tmpfs:
       - /tmp:size=8m,mode=1777
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:5100/health"]
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:5101/health"]
       interval: 5s
       timeout: 2s
       retries: 10
@@ -145,6 +167,31 @@ services:
       MONGO_HOST: ${MONGO_HOST_DEP_TEST:-mongodb-dep-test}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
+      ADMIN_AUDIT_TELEMETRY_RETENTION_DAYS: ${ADMIN_AUDIT_TELEMETRY_RETENTION_DAYS:-90}
+      ADMIN_AUDIT_ADMINISTRATIVE_RETENTION_DAYS: ${ADMIN_AUDIT_ADMINISTRATIVE_RETENTION_DAYS:-730}
+      ADMIN_INCIDENT_RESOLVED_RETENTION_DAYS: ${ADMIN_INCIDENT_RESOLVED_RETENTION_DAYS:-730}
+      ADMIN_INCIDENT_EVENT_RETENTION_DAYS: ${ADMIN_INCIDENT_EVENT_RETENTION_DAYS:-730}
+      ADMIN_STATION_HISTORY_RETENTION_DAYS: ${ADMIN_STATION_HISTORY_RETENTION_DAYS:-365}
+      ADMIN_STATION_TELEMETRY_SAMPLE_INTERVAL_SECONDS: ${ADMIN_STATION_TELEMETRY_SAMPLE_INTERVAL_SECONDS:-900}
+      ADMIN_STATION_TELEMETRY_RETENTION_DAYS: ${ADMIN_STATION_TELEMETRY_RETENTION_DAYS:-90}
+      ADMIN_JOB_MAX_ATTEMPTS: ${ADMIN_JOB_MAX_ATTEMPTS:-3}
+      ADMIN_JOB_RETENTION_DAYS: ${ADMIN_JOB_RETENTION_DAYS:-180}
+      ADMIN_JOB_TIMEOUT_MS: ${ADMIN_JOB_TIMEOUT_MS:-3600000}
+      ADMIN_OVERVIEW_SOURCE_TIMEOUT_MS: ${ADMIN_OVERVIEW_SOURCE_TIMEOUT_MS:-2500}
+      ADMIN_OVERVIEW_CACHE_TTL_MS: ${ADMIN_OVERVIEW_CACHE_TTL_MS:-5000}
+      ADMIN_ACCOUNT_APPROVAL_ENABLED: ${ADMIN_ACCOUNT_APPROVAL_ENABLED:-true}
+      ADMIN_ACCOUNT_LIFECYCLE_ENABLED: ${ADMIN_ACCOUNT_LIFECYCLE_ENABLED:-true}
+      ADMIN_ACCOUNT_SESSION_REVOCATION_ENABLED: ${ADMIN_ACCOUNT_SESSION_REVOCATION_ENABLED:-true}
+      ADMIN_ACCOUNT_ROLE_MANAGEMENT_ENABLED: ${ADMIN_ACCOUNT_ROLE_MANAGEMENT_ENABLED:-true}
+      ADMIN_INCIDENT_MANAGEMENT_ENABLED: ${ADMIN_INCIDENT_MANAGEMENT_ENABLED:-true}
+      ADMIN_RECENT_AUTH_MAX_AGE_SECONDS: ${ADMIN_RECENT_AUTH_MAX_AGE_SECONDS:-900}
+      ADMIN_REPORT_MODERATION_ENABLED: ${ADMIN_REPORT_MODERATION_ENABLED:-true}
+      ADMIN_REPORT_DELETION_ENABLED: ${ADMIN_REPORT_DELETION_ENABLED:-true}
+      ADMIN_EVENT_SUMMARY_ENABLED: ${ADMIN_EVENT_SUMMARY_ENABLED:-true}
+      ADMIN_EVENT_ENRICHMENT_ENABLED: ${ADMIN_EVENT_ENRICHMENT_ENABLED:-true}
+      ADMIN_EVENT_RECORDING_REFRESH_ENABLED: ${ADMIN_EVENT_RECORDING_REFRESH_ENABLED:-true}
+      ADMIN_DEVICE_REMOTE_ACTIONS_ENABLED: ${ADMIN_DEVICE_REMOTE_ACTIONS_ENABLED:-true}
+      ADMIN_TUNNEL_REVOCATION_ENABLED: ${ADMIN_TUNNEL_REVOCATION_ENABLED:-true}
 
       # webpush notifications VAPID keys
       PUBLIC_VAPID_KEY: ${PUBLIC_VAPID_KEY}
@@ -231,6 +278,7 @@ services:
       ADMIN_HOST_TELEMETRY_URL: http://admin-backend-dep-test:5100/v1
       ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-dep-test-internal-only}
       ADMIN_HOST_TELEMETRY_TIMEOUT_MS: ${ADMIN_HOST_TELEMETRY_TIMEOUT_MS:-2500}
+      ADMIN_TELEMETRY_STALE_AFTER_MS: ${ADMIN_TELEMETRY_STALE_AFTER_MS:-60000}
       UPLOAD_DIR: ${UPLOAD_DIR:-/app/public/uploads}
       UPLOAD_PUBLIC_PATH: ${UPLOAD_PUBLIC_PATH:-/uploads}
 
@@ -309,6 +357,13 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
     build:
       context: ../../earthquake-hub-web-client/earthquake-hub-backend
       dockerfile: Dockerfile

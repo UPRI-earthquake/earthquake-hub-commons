@@ -16,6 +16,11 @@ https_data/certbot/www/
 
 # Report image uploads persisted by the backend bind mount
 backend-uploads/
+audit-archives/
+
+# Host-specific generated admin access allowlist. Keep only the directory marker.
+runtime/admin-access.d/*.conf
+!runtime/admin-access.d/.gitkeep
 
 # Host-specific nginx overrides (keep the canonical .conf files tracked)
 https_data/nginx.d/*.local*
@@ -27,6 +32,14 @@ ringserver-configs/ring/
 bastion/ssh/
 bastion/*.pem
 bastion/*.key
+
+# Generated private PKI for ehub-backend <-> admin-backend mTLS.
+secrets/admin-telemetry/server/*
+secrets/admin-telemetry/client/*
+secrets/admin-telemetry/issuer/*
+!secrets/admin-telemetry/server/.gitkeep
+!secrets/admin-telemetry/client/.gitkeep
+!secrets/admin-telemetry/issuer/.gitkeep
 
 # Generated service unit copies (created by `seiscomp-scripts/install-services.sh`)
 seiscomp-scripts/service-units/*.service

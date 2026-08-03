@@ -1,0 +1,45 @@
+[Unit]
+Description=EarthquakeHub read-only host telemetry collector
+After=local-fs.target
+
+[Service]
+Type=simple
+User=ehub-host-collector
+Group=ehub-admin-telemetry
+EnvironmentFile=-/etc/earthquakehub-host-collector.env
+ExecStart=/usr/bin/node --jitless /opt/earthquakehub-host-collector/hostCollector.js
+Restart=on-failure
+RestartSec=5s
+RuntimeDirectory=earthquakehub-host-collector
+RuntimeDirectoryMode=0750
+UMask=0007
+CPUQuota=10%
+LimitNOFILE=128
+MemoryMax=128M
+TasksMax=32
+
+# The collector reads only the host TCP listener tables and serves one Unix socket.
+CapabilityBoundingSet=
+DevicePolicy=closed
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=true
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

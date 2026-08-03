@@ -19,6 +19,7 @@ services:
     volumes:
       - ./https_data/nginx.d:/etc/nginx/conf.d:ro              # Mount read-only access to nginx conf file.
                                                                # NOTE: Edit nginx.conf in this dir to reflect correct domain name of your server
+      - ./runtime/admin-access.d:/etc/nginx/admin-access.d:ro  # Generated allow directives; empty means deny all.
       - ./https_data/certbot/www:/var/www/certbot:ro           # Certbot will write a token in this dir, served by nginx on well-known/acme-challenge/:80 route
       - ./https_data/certbot/conf:/etc/nginx/ssl:ro            # Certbot will write the certs into this (/etc/nginx/ssl), used by nginx as ssl_certificate and ssl_certificate_key under the directory /etc/nginx/ssl/live/<domain-name>/<fullchain-or-privkey>.pem;
 
@@ -71,7 +72,7 @@ services:
       REACT_APP_SEIS_DEMO_URL: ${REACT_APP_SEIS_DEMO_URL:-}
       REACT_APP_VERSION: ${REACT_APP_VERSION:-}
       REACT_APP_GA_MEASUREMENT_ID: ${REACT_APP_GA_MEASUREMENT_ID}
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
+    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:${EHUB_FRONTEND_IMAGE_TAG:-latest}"
     depends_on:
       - "ehub-backend"
     expose:
@@ -84,14 +85,97 @@ services:
 
   admin-frontend:
     container_name: admin-frontend
-    image: "ghcr.io/upri-earthquake/admin-frontend:latest"
+    image: "ghcr.io/upri-earthquake/admin-frontend:${ADMIN_FRONTEND_IMAGE_TAG:-latest}"
     profiles:
       - admin
+    restart: unless-stopped
+    read_only: true
+    user: "101:101"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /var/cache/nginx:size=16m,mode=0700,uid=101,gid=101
+      - /var/run:size=1m,mode=0755,uid=101,gid=101
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3000/healthz"]
+      interval: 10s
+      timeout: 2s
+      retries: 6
+      start_period: 5s
     expose:
       - "3000"
     networks:
       app-network:
         ipv4_address: 172.21.0.9
+
+  admin-backend:
+    container_name: admin-backend
+    image: "ghcr.io/upri-earthquake/earthquake-hub-admin-backend:${ADMIN_BACKEND_IMAGE_TAG:-latest}"
+    profiles:
+      - admin
+    environment:
+      NODE_ENV: production
+      PORT: 5100
+      HEALTH_PORT: 5101
+      ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-}
+      ADMIN_HOST_COLLECTOR_SOCKET_PATH: ${ADMIN_HOST_COLLECTOR_SOCKET_PATH:-}
+      ADMIN_HOST_COLLECTOR_TIMEOUT_MS: ${ADMIN_HOST_COLLECTOR_TIMEOUT_MS:-1000}
+      ADMIN_TELEMETRY_TLS_MODE: required
+      ADMIN_TELEMETRY_CLIENT_CA_PATH: /run/secrets/admin-telemetry/ca.crt
+      ADMIN_TELEMETRY_SERVER_CERT_PATH: /run/secrets/admin-telemetry/tls.crt
+      ADMIN_TELEMETRY_SERVER_KEY_PATH: /run/secrets/admin-telemetry/tls.key
+      DEPLOYMENT_CHECK_URL: ${ADMIN_TELEMETRY_DEPLOYMENT_CHECK_URL:-http://ehub-backend:5000/health/ready}
+      SEISCOMP_CHECK_URL: ${ADMIN_TELEMETRY_SEISCOMP_CHECK_URL:-http://host.docker.internal:8080/fdsnws/dataselect/1/version}
+      ARCHIVE_PATH: /archive-marker
+      ARCHIVE_SOURCE_LABEL: ${ADMIN_TELEMETRY_ARCHIVE_SOURCE_LABEL:-Configured archive filesystem}
+      HOST_METRICS_SCOPE: ${ADMIN_HOST_METRICS_SCOPE:-deployment-container}
+      HOST_METRICS_SOURCE_LABEL: ${ADMIN_HOST_METRICS_SOURCE_LABEL:-EarthquakeHub admin telemetry container}
+      SERVER_FILESYSTEM_PATH: /deployment-filesystem-marker
+      SERVER_FILESYSTEM_LABEL: ${ADMIN_SERVER_FILESYSTEM_LABEL:-Deployment filesystem}
+      HOST_CPU_SAMPLE_MS: ${ADMIN_HOST_CPU_SAMPLE_MS:-150}
+      TELEMETRY_CHECK_TIMEOUT_MS: ${ADMIN_TELEMETRY_CHECK_TIMEOUT_MS:-1500}
+    volumes:
+      - type: bind
+        source: ${ADMIN_TELEMETRY_SERVER_PKI_DIR:-./secrets/admin-telemetry/server}
+        target: /run/secrets/admin-telemetry
+        read_only: true
+      - type: bind
+        source: ${ADMIN_TELEMETRY_ARCHIVE_HOST_PATH:-./archive-telemetry-sample}
+        target: /archive-marker
+        read_only: true
+      - type: bind
+        source: ${ADMIN_TELEMETRY_SERVER_FILESYSTEM_HOST_PATH:-./archive-telemetry-sample}
+        target: /deployment-filesystem-marker
+        read_only: true
+      - type: bind
+        source: ${ADMIN_HOST_COLLECTOR_SOCKET_DIR:-./runtime/admin-host-collector}
+        target: /run/earthquakehub-host-collector
+        read_only: true
+    group_add:
+      - "${ADMIN_HOST_COLLECTOR_GID:-65534}"
+    read_only: true
+    init: true
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=8m,mode=1777
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:5101/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 6
+      start_period: 5s
+    expose:
+      - "5100"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - admin-telemetry-network
 
   ehub-backend:
     container_name: ehub-backend
@@ -102,6 +186,33 @@ services:
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
+      ADMIN_AUDIT_TELEMETRY_RETENTION_DAYS: ${ADMIN_AUDIT_TELEMETRY_RETENTION_DAYS:-90}
+      ADMIN_AUDIT_ADMINISTRATIVE_RETENTION_DAYS: ${ADMIN_AUDIT_ADMINISTRATIVE_RETENTION_DAYS:-730}
+      ADMIN_INCIDENT_RESOLVED_RETENTION_DAYS: ${ADMIN_INCIDENT_RESOLVED_RETENTION_DAYS:-730}
+      ADMIN_INCIDENT_EVENT_RETENTION_DAYS: ${ADMIN_INCIDENT_EVENT_RETENTION_DAYS:-730}
+      ADMIN_STATION_HISTORY_RETENTION_DAYS: ${ADMIN_STATION_HISTORY_RETENTION_DAYS:-365}
+      ADMIN_STATION_TELEMETRY_SAMPLE_INTERVAL_SECONDS: ${ADMIN_STATION_TELEMETRY_SAMPLE_INTERVAL_SECONDS:-900}
+      ADMIN_STATION_TELEMETRY_RETENTION_DAYS: ${ADMIN_STATION_TELEMETRY_RETENTION_DAYS:-90}
+      ADMIN_JOB_MAX_ATTEMPTS: ${ADMIN_JOB_MAX_ATTEMPTS:-3}
+      ADMIN_JOB_RETENTION_DAYS: ${ADMIN_JOB_RETENTION_DAYS:-180}
+      ADMIN_JOB_TIMEOUT_MS: ${ADMIN_JOB_TIMEOUT_MS:-3600000}
+      ADMIN_OVERVIEW_SOURCE_TIMEOUT_MS: ${ADMIN_OVERVIEW_SOURCE_TIMEOUT_MS:-2500}
+      ADMIN_OVERVIEW_CACHE_TTL_MS: ${ADMIN_OVERVIEW_CACHE_TTL_MS:-5000}
+      ADMIN_ACCOUNT_APPROVAL_ENABLED: ${ADMIN_ACCOUNT_APPROVAL_ENABLED:-true}
+      ADMIN_ACCOUNT_LIFECYCLE_ENABLED: ${ADMIN_ACCOUNT_LIFECYCLE_ENABLED:-true}
+      ADMIN_ACCOUNT_SESSION_REVOCATION_ENABLED: ${ADMIN_ACCOUNT_SESSION_REVOCATION_ENABLED:-true}
+      ADMIN_ACCOUNT_ROLE_MANAGEMENT_ENABLED: ${ADMIN_ACCOUNT_ROLE_MANAGEMENT_ENABLED:-true}
+      ADMIN_INCIDENT_MANAGEMENT_ENABLED: ${ADMIN_INCIDENT_MANAGEMENT_ENABLED:-true}
+      ADMIN_RECENT_AUTH_MAX_AGE_SECONDS: ${ADMIN_RECENT_AUTH_MAX_AGE_SECONDS:-900}
+      ADMIN_REPORT_MODERATION_ENABLED: ${ADMIN_REPORT_MODERATION_ENABLED:-true}
+      ADMIN_REPORT_DELETION_ENABLED: ${ADMIN_REPORT_DELETION_ENABLED:-true}
+      ADMIN_EVENT_SUMMARY_ENABLED: ${ADMIN_EVENT_SUMMARY_ENABLED:-true}
+      ADMIN_EVENT_SUMMARY_REVIEW_ENABLED: ${ADMIN_EVENT_SUMMARY_REVIEW_ENABLED:-true}
+      EVENT_SUMMARY_ALLOW_UNAPPROVED_COMPAT: ${EVENT_SUMMARY_ALLOW_UNAPPROVED_COMPAT:-false}
+      ADMIN_EVENT_ENRICHMENT_ENABLED: ${ADMIN_EVENT_ENRICHMENT_ENABLED:-true}
+      ADMIN_EVENT_RECORDING_REFRESH_ENABLED: ${ADMIN_EVENT_RECORDING_REFRESH_ENABLED:-true}
+      ADMIN_DEVICE_REMOTE_ACTIONS_ENABLED: ${ADMIN_DEVICE_REMOTE_ACTIONS_ENABLED:-true}
+      ADMIN_TUNNEL_REVOCATION_ENABLED: ${ADMIN_TUNNEL_REVOCATION_ENABLED:-true}
 
       # webpush notifications VAPID keys
       PUBLIC_VAPID_KEY: ${PUBLIC_VAPID_KEY}
@@ -185,6 +296,11 @@ services:
       ADMIN_HOST_TELEMETRY_URL: ${ADMIN_HOST_TELEMETRY_URL:-}
       ADMIN_HOST_TELEMETRY_TOKEN: ${ADMIN_HOST_TELEMETRY_TOKEN:-}
       ADMIN_HOST_TELEMETRY_TIMEOUT_MS: ${ADMIN_HOST_TELEMETRY_TIMEOUT_MS:-2500}
+      ADMIN_TELEMETRY_STALE_AFTER_MS: ${ADMIN_TELEMETRY_STALE_AFTER_MS:-60000}
+      ADMIN_HOST_TELEMETRY_TLS_REQUIRED: ${ADMIN_HOST_TELEMETRY_TLS_REQUIRED:-false}
+      ADMIN_HOST_TELEMETRY_CA_PATH: /run/secrets/admin-telemetry/ca.crt
+      ADMIN_HOST_TELEMETRY_CERT_PATH: /run/secrets/admin-telemetry/tls.crt
+      ADMIN_HOST_TELEMETRY_KEY_PATH: /run/secrets/admin-telemetry/tls.key
       UPLOAD_DIR: ${UPLOAD_DIR}
       UPLOAD_PUBLIC_PATH: ${UPLOAD_PUBLIC_PATH:-/uploads}
 
@@ -254,16 +370,27 @@ services:
       - type: bind
         source: ${UPLOAD_HOST_DIR:-./backend-uploads}
         target: ${UPLOAD_DIR:-/app/public/uploads}
+      - type: bind
+        source: ${ADMIN_TELEMETRY_CLIENT_PKI_DIR:-./secrets/admin-telemetry/client}
+        target: /run/secrets/admin-telemetry
+        read_only: true
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
     depends_on:
       mongodb:
         condition: service_started
       upload-permissions:
         condition: service_completed_successfully
-    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
+    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:${EHUB_BACKEND_IMAGE_TAG:-latest}"
     expose:
       - "5000"
     extra_hosts:
@@ -271,6 +398,7 @@ services:
     networks:
       app-network:
         ipv4_address: 172.21.0.3
+      admin-telemetry-network:
 
   ringserver:
     container_name: ringserver
@@ -303,8 +431,6 @@ services:
     networks:
       app-network:
         ipv4_address: 172.21.0.5
-
-# TODO: Add admin-backend
 
 # Geoserve is used to convert (long, lat) to city-names.
 # The images are available as bare-metal builds in the server
@@ -367,3 +493,6 @@ networks:
     ipam:
       config:
         - subnet: 172.21.0.0/16
+  admin-telemetry-network:
+    name: earthquake-hub-admin-telemetry-network
+    driver: bridge
