@@ -67,6 +67,11 @@ Dep-test uses an isolated Docker subnet, `172.24.0.0/16`, to avoid clashing with
 
 ### Admin Console Production Exposure
 
+Start with the
+[Admin Console deployment documentation index](docs/admin-backend/README.md)
+for architecture decisions, runbook ownership, current server status, and the
+routine verification path.
+
 Do not expose the admin console publicly.
 
 Production `/admin/` and `/api/admin/` are tracked with fail-closed `deny all`
@@ -87,6 +92,9 @@ only a group-protected Unix socket, and reports only loopback listener ports in
 the fixed WSTunnel range. A registry mapping and an observed listener are
 separate facts; neither one proves latency, packet delivery, or continuous
 availability.
+
+The current actual-server deployment progress is tracked in
+`docs/admin-backend/server-deployment-status.md`.
 
 ## Email Branding Variables
 - `ehub-backend` now supports branded HTML email logo settings:

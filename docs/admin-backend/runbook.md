@@ -1,6 +1,10 @@
 # Admin backend dep-test runbook
 
-The private admin backend currently provides fixed read-only checks for dep-test only. It must not be exposed through nginx.
+The private admin backend provides fixed read-only checks in dep-test and in the
+actual-server `admin` profile. It must not be exposed through nginx. This
+runbook covers the dep-test workflow; use the
+[actual-server smoke runbook](production-read-only-runbook.md) and
+[deployment status checklist](server-deployment-status.md) for the server.
 
 ## Validate before starting
 
@@ -41,9 +45,9 @@ ADMIN_SMOKE_IDENTIFIER='…' ADMIN_SMOKE_PASSWORD='…' ./scripts/admin-dep-test
 
 Then verify the Overview, Deployment, SeisComP, Archive & Storage, and Audit Logs pages. Audit Logs should include `admin.telemetry.read` without response bodies.
 
-## Disable or roll back
+## Disable or roll back dep-test
 
-Do not deploy this service to production. To stop only the dep-test adapter:
+To stop only the dep-test adapter:
 
 ```bash
 docker compose --env-file .dep-test.env -f docker-compose.dep-test.yml stop admin-backend-dep-test
@@ -53,4 +57,11 @@ The hub backend treats an unavailable adapter as partial telemetry failure; othe
 
 ## Future host-service prerequisite
 
-The dep-test adapter does not run host commands. Before production host telemetry or mutations are enabled, deploy a separately reviewed host-native admin service under a dedicated least-privilege identity. Do not give a container a Docker socket, host root mount, privileged mode, or unrestricted shell access. SeisComP reload/restart, Inventory Import, raw logs, and Docker service state remain disabled until their fixed operation contracts and rollback procedures are implemented.
+Neither adapter deployment runs host commands. The current production
+container reports the intentionally narrow `deployment-container` scope.
+Before VM-authoritative telemetry or host mutations are enabled, deploy or
+connect a separately reviewed host-native collector under a dedicated
+least-privilege identity. Do not give a container a Docker socket, host root
+mount, privileged mode, or unrestricted shell access. SeisComP reload/restart,
+Inventory Import, raw logs, and Docker service state remain disabled until
+their fixed operation contracts and rollback procedures are implemented.
