@@ -34,6 +34,7 @@ adapter has no host-published port and is not routed through nginx. Only
 | [`deployment-server-test.md`](deployment-server-test.md) | Full first rollout and verification sequence |
 | [`environment-reference.md`](environment-reference.md) | Every admin environment variable, default, scope, and secret classification |
 | [`production-read-only-runbook.md`](production-read-only-runbook.md) | Filesystem markers, mTLS, private adapter, optional host collector, and telemetry smoke |
+| [`host-bootstrap-and-migration.md`](host-bootstrap-and-migration.md) | Server-migration boundary, planned idempotent bootstrap contract, and acceptance checklist |
 | [`release-safety-runbook.md`](release-safety-runbook.md) | Fail-closed nginx allowlist, validation, emergency disable, and rollback |
 | [`release-checklist.md`](release-checklist.md) | Cross-repository acceptance and production-readiness gates |
 | [`operational-snapshot-contract.md`](operational-snapshot-contract.md) | Fresh/stale/unavailable/partial evidence semantics |
@@ -107,4 +108,3 @@ partial result; transport or identity failure is not.
 - [Docker Compose networks](https://docs.docker.com/reference/compose-file/networks/)
 - [Docker Compose service health checks](https://docs.docker.com/reference/compose-file/services/#healthcheck)
 - [Node.js TLS](https://nodejs.org/api/tls.html)
-

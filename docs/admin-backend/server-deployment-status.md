@@ -1,6 +1,6 @@
 # Admin Console server deployment status
 
-Last reviewed: 2026-08-04
+Last reviewed: 2026-08-10
 
 This is a simple status snapshot for the current deployment test. It does not
 replace the release checklist or production runbooks. Do not record secrets,
@@ -25,15 +25,15 @@ tokens, private keys, or host-specific allowlist addresses in this file.
   production telemetry smoke test.
 - [x] Archive, Deployment, SeisComP, and System telemetry report `available`.
 - [x] CPU, memory, and disk telemetry are transported from the private adapter.
+- [x] The optional `earthquakehub-host-collector` service is enabled and the
+  configured Unix socket is available to `admin-backend` through a read-only
+  mount and shared numeric group.
+- [x] WSTunnel listener telemetry reports available bounded listener evidence.
+- [x] The hub backend retrieves active WSTunnel mappings through the approved
+  bastion SSH execution path; the Stations page shows the active mappings.
 
 ## Not set up yet
 
-- [ ] Install and enable the optional `earthquakehub-host-collector` systemd
-  service.
-- [ ] Configure the collector Unix socket path, directory, timeout, and shared
-  group ID in `.env`.
-- [ ] Recreate `admin-backend` and confirm WSTunnel telemetry no longer reports
-  `unavailable (not_configured)`.
 - [ ] Replace the temporary public `/32` nginx allow entry with an approved,
   stable VPN or internal administrator CIDR when available.
 - [ ] Validate deployment-VM CPU, memory, and filesystem measurements before
@@ -78,7 +78,7 @@ archive: available
 deployment: available
 seiscomp: available
 system: available
-wstunnel: unavailable (not_configured)
+wstunnel: available
 ```
 
 Continue with `production-read-only-runbook.md` for the optional host collector
