@@ -67,8 +67,10 @@ all required in production.
 ### Filesystem markers
 
 Compose mounts empty markers on the selected deployment and archive
-filesystems, not host root or the waveform tree. The adapter can use `statfs`
-without receiving directory traversal or waveform access.
+filesystems, not host root or the waveform tree. The adapter uses `statfs` to
+return rounded total, used, and available capacity plus a utilization band,
+without receiving directory traversal, remote-mount identity, or waveform
+access.
 
 ### Optional host collector
 

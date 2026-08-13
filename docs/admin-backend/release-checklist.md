@@ -37,7 +37,7 @@
 - [ ] Overview links reach each subsystem.
 - [ ] Deployment fixed HTTP check reports independently.
 - [ ] SeisComP fixed FDSNWS failure does not block other Overview sources.
-- [ ] Archive check reports only mount state and free-space band.
+- [ ] Archive check reports mount state plus rounded total, used, and available capacity without paths, remote mount identifiers, files, or waveform data.
 - [ ] Browser smoke confirms loading, empty, unavailable, unauthorized, and partial-failure states.
 
 ## Production blockers

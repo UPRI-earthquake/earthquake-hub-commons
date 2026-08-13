@@ -72,6 +72,17 @@ sudo ./scripts/bootstrap-admin-host.sh \
   --collector-image ghcr.io/upri-earthquake/earthquake-hub-admin-backend:<IMMUTABLE_TAG>
 ```
 
+For a read-only cross-check after restoring `.env`, provide the deployment
+environment file and an optional root-readable report destination. The script
+does not print or include secret values in the report:
+
+```bash
+sudo ./scripts/bootstrap-admin-host.sh --check \
+  --env-file .env \
+  --archive-marker-path /mnt/storage-server/.earthquake-hub-telemetry \
+  --report-file /var/lib/earthquake-hub/admin-bootstrap-report.json
+```
+
 The script always creates this local deployment-filesystem marker:
 
 ```text
@@ -122,6 +133,12 @@ The script’s contract is deliberately conservative:
 - Invoke the existing idempotent `bastion/setup-host.sh` for the bastion assets.
 - Report the collector group ID needed by `ADMIN_HOST_COLLECTOR_GID`.
 - Offer `--check` as a read-only preflight and `--dry-run` before mutations.
+- When `--env-file` is supplied, verify that non-secret socket paths, shared
+  numeric group ID, WSTunnel port range, and filesystem marker settings agree
+  with the host collector and mounted storage.
+- Optionally write a mode-0600, root-readable JSON report containing service
+  state, mount targets, paths, and group ID—but never tokens, keys, or other
+  secret values.
 
 ### It must not do
 
@@ -227,6 +244,8 @@ IP address from an old server:
 ```
 
 The bootstrap output prints the exact marker-path values to place in `.env`.
+Run the `--check --env-file` command above after those values are set to verify
+the collector and deployment configuration remain aligned.
 
 ### 5. Deploy containers and verify
 

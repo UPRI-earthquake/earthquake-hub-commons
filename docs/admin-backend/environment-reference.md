@@ -111,7 +111,7 @@ the adapter on the two-service private Docker network.
 | `ADMIN_TELEMETRY_CHECK_TIMEOUT_MS` | `1500` | Adapter timeout for each fixed downstream HTTP check. |
 | `ADMIN_TELEMETRY_DEPLOYMENT_CHECK_URL` | hub readiness URL | Fixed deployment readiness endpoint; request input cannot replace it. |
 | `ADMIN_TELEMETRY_SEISCOMP_CHECK_URL` | host FDSNWS version URL | Fixed SeisComP/FDSNWS reachability endpoint. Its failure degrades only that resource. |
-| `ADMIN_TELEMETRY_ARCHIVE_HOST_PATH` | sample marker | Empty host directory on the waveform archive filesystem, mounted read-only for `statfs`. Never use the archive root. |
+| `ADMIN_TELEMETRY_ARCHIVE_HOST_PATH` | sample marker | Empty host directory on the waveform archive filesystem, mounted read-only for `statfs` capacity telemetry. Never use the archive root. The adapter returns rounded capacity only, never this path or remote-mount details. |
 | `ADMIN_TELEMETRY_SERVER_FILESYSTEM_HOST_PATH` | sample marker | Empty host directory on the deployment filesystem, mounted read-only for `statfs`. Never use `/` or Docker data. |
 | `ADMIN_TELEMETRY_ARCHIVE_SOURCE_LABEL` | configured label | Safe operator-facing archive-filesystem label; the host path is not returned. |
 | `ADMIN_SERVER_FILESYSTEM_LABEL` | configured label | Safe operator-facing deployment-filesystem label. |

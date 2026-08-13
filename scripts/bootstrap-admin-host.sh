@@ -27,6 +27,8 @@ COLLECTOR_SOURCE=""
 COLLECTOR_IMAGE=""
 ARCHIVE_MARKER_PATH=""
 TEMPORARY_SOURCE_DIR=""
+ENV_FILE=""
+REPORT_FILE=""
 
 usage() {
   cat <<'USAGE'
@@ -45,6 +47,10 @@ Options:
                              Create an empty archive telemetry marker at this path.
                              The path must resolve to a mounted filesystem other
                              than the deployment filesystem; root is rejected.
+  --env-file <path>          Read deployment settings and verify non-secret
+                             collector, port-range, and marker-path consistency.
+  --report-file <path>       Write a root-readable, non-secret JSON preflight
+                             report. May be combined with --check.
   --skip-bastion             Do not run the idempotent bastion/setup-host.sh step.
   --version                  Print version.
   -h, --help                 Show this help.
@@ -111,6 +117,16 @@ parse_args() {
         [[ "$ARCHIVE_MARKER_PATH" == /* ]] || fail '--archive-marker-path must be absolute.'
         shift 2
         ;;
+      --env-file)
+        ENV_FILE="${2:-}"
+        [[ -n "$ENV_FILE" ]] || fail '--env-file requires a path.'
+        shift 2
+        ;;
+      --report-file)
+        REPORT_FILE="${2:-}"
+        [[ "$REPORT_FILE" == /* ]] || fail '--report-file must be an absolute path.'
+        shift 2
+        ;;
       --version) printf '%s %s\n' "$(basename "$0")" "$SCRIPT_VERSION"; exit 0 ;;
       --help|-h) usage; exit 0 ;;
       *) fail "Unknown option: $1" ;;
@@ -123,6 +139,30 @@ parse_args() {
   if [[ "$CHECK_ONLY" == false && -z "$COLLECTOR_SOURCE" && -z "$COLLECTOR_IMAGE" ]]; then
     fail 'Provide --collector-source or --collector-image (or use --check).'
   fi
+  if [[ -n "$ENV_FILE" ]]; then
+    [[ -r "$ENV_FILE" ]] || fail "Environment file is not readable: $ENV_FILE"
+  fi
+}
+
+dotenv_value() {
+  local key="$1" file="$2"
+  awk -v requested="$key" '
+    $0 ~ /^[[:space:]]*#/ || $0 !~ /=/ { next }
+    {
+      line = $0
+      sub(/^[[:space:]]*export[[:space:]]+/, "", line)
+      split(line, pair, "=")
+      name = pair[1]
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", name)
+      if (name == requested) {
+        value = substr(line, index(line, "=") + 1)
+        sub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+        if ((value ~ /^".*"$/) || (value ~ /^\047.*\047$/)) value = substr(value, 2, length(value) - 2)
+        print value
+        exit
+      }
+    }
+  ' "$file"
 }
 
 mounted_filesystem_target() {
@@ -150,6 +190,42 @@ validate_marker_paths() {
   [[ "$archive_mount" != "/" ]] || fail 'Archive marker resolves to the root filesystem; mount the archive first and use its separate mount path.'
   [[ "$archive_mount" != "$deployment_mount" ]] || fail 'Archive marker resolves to the deployment filesystem; provide a path on the separately mounted archive filesystem.'
   note "Archive marker filesystem: $archive_mount"
+}
+
+validate_env_consistency() {
+  [[ -n "$ENV_FILE" ]] || return 0
+
+  local env_start env_end collector_start collector_end env_socket env_socket_dir env_gid actual_gid env_deployment_marker env_archive_marker
+  env_start="$(dotenv_value TUNNEL_PORT_RANGE_START "$ENV_FILE")"
+  env_end="$(dotenv_value TUNNEL_PORT_RANGE_END "$ENV_FILE")"
+  env_socket="$(dotenv_value ADMIN_HOST_COLLECTOR_SOCKET_PATH "$ENV_FILE")"
+  env_socket_dir="$(dotenv_value ADMIN_HOST_COLLECTOR_SOCKET_DIR "$ENV_FILE")"
+  env_gid="$(dotenv_value ADMIN_HOST_COLLECTOR_GID "$ENV_FILE")"
+  env_deployment_marker="$(dotenv_value ADMIN_TELEMETRY_SERVER_FILESYSTEM_HOST_PATH "$ENV_FILE")"
+  env_archive_marker="$(dotenv_value ADMIN_TELEMETRY_ARCHIVE_HOST_PATH "$ENV_FILE")"
+
+  [[ -n "$env_start" && -n "$env_end" ]] || fail 'The supplied .env must define TUNNEL_PORT_RANGE_START and TUNNEL_PORT_RANGE_END.'
+  [[ -n "$env_socket" && -n "$env_socket_dir" && -n "$env_gid" ]] || fail 'The supplied .env must define ADMIN_HOST_COLLECTOR_SOCKET_PATH, ADMIN_HOST_COLLECTOR_SOCKET_DIR, and ADMIN_HOST_COLLECTOR_GID.'
+  [[ -n "$env_deployment_marker" && -n "$env_archive_marker" ]] || fail 'The supplied .env must define both telemetry marker host paths.'
+  [[ -r "$COLLECTOR_ENV_TARGET" ]] || fail "Collector environment is missing: $COLLECTOR_ENV_TARGET"
+
+  collector_start="$(dotenv_value HOST_COLLECTOR_WSTUNNEL_PORT_RANGE_START "$COLLECTOR_ENV_TARGET")"
+  collector_end="$(dotenv_value HOST_COLLECTOR_WSTUNNEL_PORT_RANGE_END "$COLLECTOR_ENV_TARGET")"
+  [[ "$env_start" == "$collector_start" && "$env_end" == "$collector_end" ]] \
+    || fail 'WSTunnel port range differs between .env and the host collector environment.'
+  [[ "$env_socket" == "/run/earthquakehub-host-collector/collector.sock" ]] \
+    || fail 'ADMIN_HOST_COLLECTOR_SOCKET_PATH must be /run/earthquakehub-host-collector/collector.sock.'
+  [[ "$env_socket_dir" == "/run/earthquakehub-host-collector" ]] \
+    || fail 'ADMIN_HOST_COLLECTOR_SOCKET_DIR must be /run/earthquakehub-host-collector.'
+
+  if getent group "$COLLECTOR_GROUP" >/dev/null; then
+    actual_gid="$(getent group "$COLLECTOR_GROUP" | cut -d: -f3)"
+    [[ "$env_gid" == "$actual_gid" ]] || fail "ADMIN_HOST_COLLECTOR_GID ($env_gid) does not match $COLLECTOR_GROUP ($actual_gid)."
+  else
+    warn "Cannot verify ADMIN_HOST_COLLECTOR_GID: group $COLLECTOR_GROUP does not exist yet."
+  fi
+
+  note 'Environment consistency: verified without reading or printing secrets.'
 }
 
 check_node() {
@@ -207,6 +283,37 @@ report_state() {
   else
     note 'Archive marker: not requested'
   fi
+}
+
+write_report() {
+  [[ -n "$REPORT_FILE" ]] || return 0
+  local report_directory temporary_report group_id service_state enabled_state deployment_mount archive_mount
+  report_directory="$(dirname -- "$REPORT_FILE")"
+  [[ -d "$report_directory" ]] || fail "Report directory does not exist: $report_directory"
+  group_id="$(getent group "$COLLECTOR_GROUP" 2>/dev/null | cut -d: -f3 || true)"
+  service_state="$(systemctl is-active earthquakehub-host-collector.service 2>/dev/null || true)"
+  enabled_state="$(systemctl is-enabled earthquakehub-host-collector.service 2>/dev/null || true)"
+  deployment_mount="$(mounted_filesystem_target "$DEPLOYMENT_MARKER_PATH")"
+  archive_mount=""
+  [[ -n "$ARCHIVE_MARKER_PATH" ]] && archive_mount="$(mounted_filesystem_target "$ARCHIVE_MARKER_PATH")"
+  temporary_report="$(mktemp "$report_directory/.admin-bootstrap-report.XXXXXX")"
+  BOOTSTRAP_VERSION="$SCRIPT_VERSION" BOOTSTRAP_GROUP="$COLLECTOR_GROUP" BOOTSTRAP_GID="$group_id" \
+    BOOTSTRAP_SERVICE="$service_state" BOOTSTRAP_ENABLED="$enabled_state" \
+    BOOTSTRAP_DEPLOYMENT_MARKER="$DEPLOYMENT_MARKER_PATH" BOOTSTRAP_DEPLOYMENT_MOUNT="$deployment_mount" \
+    BOOTSTRAP_ARCHIVE_MARKER="$ARCHIVE_MARKER_PATH" BOOTSTRAP_ARCHIVE_MOUNT="$archive_mount" \
+    BOOTSTRAP_ENV_FILE="$ENV_FILE" node - <<'NODE' > "$temporary_report"
+const keys = [
+  'BOOTSTRAP_VERSION', 'BOOTSTRAP_GROUP', 'BOOTSTRAP_GID', 'BOOTSTRAP_SERVICE',
+  'BOOTSTRAP_ENABLED', 'BOOTSTRAP_DEPLOYMENT_MARKER', 'BOOTSTRAP_DEPLOYMENT_MOUNT',
+  'BOOTSTRAP_ARCHIVE_MARKER', 'BOOTSTRAP_ARCHIVE_MOUNT', 'BOOTSTRAP_ENV_FILE',
+];
+const result = { observedAt: new Date().toISOString() };
+for (const key of keys) result[key.replace('BOOTSTRAP_', '').toLowerCase()] = process.env[key] || null;
+console.log(JSON.stringify(result, null, 2));
+NODE
+  install -o root -g root -m 0600 "$temporary_report" "$REPORT_FILE"
+  rm -f -- "$temporary_report"
+  note "Wrote non-secret bootstrap report: $REPORT_FILE"
 }
 
 copy_source_from_image() {
@@ -305,9 +412,11 @@ main() {
   check_node
   check_sources
   validate_marker_paths
+  validate_env_consistency
   report_state
 
   if [[ "$CHECK_ONLY" == true ]]; then
+    write_report
     note 'Read-only preflight completed.'
     exit 0
   fi
@@ -324,6 +433,7 @@ main() {
     note 'Skipping bastion bootstrap by request.'
   fi
   verify_and_start_collector
+  write_report
 
   if [[ "$DRY_RUN" == false ]]; then
     note "Collector group ID for ADMIN_HOST_COLLECTOR_GID: $(getent group "$COLLECTOR_GROUP" | cut -d: -f3)"
