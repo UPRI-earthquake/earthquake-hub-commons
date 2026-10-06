@@ -54,7 +54,7 @@ printf 'PASS POST /api/admin/authenticate -> 200 (session cookies issued)\n'
 
 request_status GET /api/admin/profile 200
 
-pages=(/ /accounts /devices-stations /earthquake-events /community-reports /ringserver /seiscomp /inventory-import /archive-storage /deployment /audit-logs /settings)
+pages=(/ /accounts /devices-stations /earthquake-events /community-reports /ringserver /seiscomp /inventory-import /archive-storage /deployment /audit-logs /settings /profile)
 for page in "${pages[@]}"; do
   request_status GET "/admin${page}" 200
 done
@@ -73,6 +73,11 @@ api_routes=(
   /deployment-health/snapshot
   /audit-logs
   /configuration-diagnostics/snapshot
+  /preferences
+  /notifications/preferences
+  /notifications/rule
+  /notifications/deliveries
+  /devices-stations/map
 )
 for route in "${api_routes[@]}"; do
   request_status GET "/api/admin${route}" 200
