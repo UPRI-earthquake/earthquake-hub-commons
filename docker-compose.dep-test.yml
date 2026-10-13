@@ -60,6 +60,10 @@ services:
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
       MONGO_NAME: ${MONGO_NAME}
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_AUTH_SOURCE: ${MONGO_AUTH_SOURCE}
+      MONGO_REPLICA_SET: ${MONGO_REPLICA_SET}
 
       # webpush notifications VAPID keys
       PUBLIC_VAPID_KEY: ${PUBLIC_VAPID_KEY}
@@ -95,6 +99,10 @@ services:
       REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY}
       REFRESH_TOKEN_DEVICE_EXPIRY: ${REFRESH_TOKEN_DEVICE_EXPIRY}
 
+      # file uploads
+      UPLOAD_DIR: ${UPLOAD_DIR}
+      UPLOAD_PUBLIC_PATH: ${UPLOAD_PUBLIC_PATH}
+
       # email delivery
       EMAIL_TRANSPORT: ${EMAIL_TRANSPORT}
       EMAIL_HOST: ${EMAIL_HOST}
@@ -104,7 +112,8 @@ services:
       EMAIL_PASS: ${EMAIL_PASS}
       EMAIL_FROM: ${EMAIL_FROM}
     depends_on:
-      - "mongodb-dep-test"
+      mongodb-dep-test:
+        condition: service_healthy # wait until the replica set has a primary
     image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
     expose:
       - "5000"
@@ -134,11 +143,23 @@ services:
 
   mongodb-dep-test:
     container_name: mongodb-dep-test
-    image: "mongo:5.0"
+    image: "mongo:8.0.32"
+    environment:
+      # Users are only created on the first start of an EMPTY volume.
+      # Existing volumes: create both users manually first (see mongo-init/create-app-user.js).
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?set MONGO_INITDB_ROOT_USERNAME in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?set MONGO_INITDB_ROOT_PASSWORD in .env}
+      MONGO_INITDB_DATABASE: ${MONGO_NAME}
+      MONGO_USER: ${MONGO_USER:?set MONGO_USER in .env}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
     volumes:
       - type: volume
         source: earthquake-hub-mongodb-data-dep-test
         target: /data/db
+      - type: bind
+        source: ./mongo-init
+        target: /docker-entrypoint-initdb.d
+        read_only: true
     expose:
       - "27017"
     ports:
@@ -146,6 +167,23 @@ services:
     networks:
       app-network:
         ipv4_address: 172.21.0.5
+    # Auth + replica set needs a keyfile, even with one node; generated on each start.
+    entrypoint: >
+      bash -c "head -c 756 /dev/urandom | base64 > /tmp/mongo-keyfile &&
+      chmod 400 /tmp/mongo-keyfile && chown mongodb:mongodb /tmp/mongo-keyfile &&
+      exec docker-entrypoint.sh mongod --replSet rs0 --keyFile /tmp/mongo-keyfile --bind_ip_all"
+    healthcheck:
+      # Initiates the single-node replica set on first run; healthy once this node is primary.
+      # The member host must match this service's name so the backend can resolve it.
+      test: >
+        mongosh --quiet -u "$$MONGO_INITDB_ROOT_USERNAME" -p "$$MONGO_INITDB_ROOT_PASSWORD"
+        --authenticationDatabase admin --eval
+        "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb-dep-test:27017' }] }) }
+        quit(db.hello().isWritablePrimary ? 0 : 1)"
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
 
 # TODO: Add admin-frontend

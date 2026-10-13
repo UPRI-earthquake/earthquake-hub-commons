@@ -4,3 +4,5 @@ This repository integrates all the essential programs necessary for hosting a ci
 ## Deployment Testing
 Follow the instructions on Server Deployment via Docker Compose in our [documentation](https://upri-earthquake.github.io/ehub-commons).
 
+**MongoDB 8.0 + auth upgrade:** before deploying the MongoDB changes to a server that already has a database, follow [MONGODB_UPGRADE.md](MONGODB_UPGRADE.md). Deploying without it locks the backend out of the database.
+
