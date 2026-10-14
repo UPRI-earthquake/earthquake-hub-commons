@@ -167,9 +167,10 @@ services:
     networks:
       app-network:
         ipv4_address: 172.21.0.5
-    # Auth + replica set needs a keyfile, even with one node; generated on each start.
+    # Auth + replica set needs a keyfile, even with one node; regenerated on each start
+    # (the old one is removed first: /tmp is sticky, so root can't overwrite a file owned by mongodb).
     entrypoint: >
-      bash -c "head -c 756 /dev/urandom | base64 > /tmp/mongo-keyfile &&
+      bash -c "rm -f /tmp/mongo-keyfile && head -c 756 /dev/urandom | base64 > /tmp/mongo-keyfile &&
       chmod 400 /tmp/mongo-keyfile && chown mongodb:mongodb /tmp/mongo-keyfile &&
       exec docker-entrypoint.sh mongod --replSet rs0 --keyFile /tmp/mongo-keyfile --bind_ip_all"
     healthcheck:
