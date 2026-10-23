@@ -35,7 +35,7 @@ class EventListener(seiscomp.client.Application):
                     return
 
             # get values of interest from Origin obj
-            depth = int(org.depth().value()+0.5)
+            depth = org.depth().value()
             OT = org.time().value().toString("%Y-%m-%dT%H:%M:%S.000Z")
             lat = org.latitude().value()
             lon = org.longitude().value()

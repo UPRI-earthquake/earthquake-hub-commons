@@ -17,6 +17,7 @@ fi
 
 # Install dependencies from SCRIPTS_DIR/requirements.txt via venv
 echo "Installing python script dependencies"
+"$PYTHON3_PATH" -m ensurepip --upgrade
 "$PYTHON3_PATH" -m pip install -r "$SCRIPTS_DIR/requirements.txt"
 
 # Make each script executable

@@ -1,0 +1,24 @@
+# WSTunnel server restriction policy for sender reverse tunnels.
+# Keep this in sync with bastion/register-device.sh defaults:
+#   PORT_RANGE_START_DEFAULT=22000
+#   PORT_RANGE_END_DEFAULT=22999
+#
+# Path-prefix auth is enforced at the nginx tunnel location.
+# This restriction file intentionally allows any matched HTTP-upgrade path after
+# nginx routing, then limits the reverse tunnel destination to localhost ports
+# assigned by bastion/register-device.sh.
+
+restrictions:
+  - name: "Allow sender reverse tunnel listeners"
+    description: "Allow reverse TCP listeners on localhost in assigned sender port range."
+    match:
+      - !Any
+    allow:
+      - !ReverseTunnel
+        protocol:
+          - Tcp
+        port:
+          - 22000..22999
+        cidr:
+          - 127.0.0.1/32
+          - ::1/128
