@@ -1,52 +1,64 @@
-# Detailed Description
+<!--
+PR Title Format:
+type: [SEISMO-XXXX] Short description
 
-### Summary
-<!--- Please link the related issue/task --> 
-> This PR fixes: [SEISMO #### - Title](issue-link)
+Types: feat, fix, docs, chore, test, refactor
+Include a task ID when available.
+Use GitHub's Draft PR option for work in progress.
+-->
 
-<!--- Please include a detailed summary of the changes --> 
- 
-### Motivation & Context
-<!--- Why is this change required? What problem does it solve? -->
-<!--- If it fixes an open issue, please link to the issue here. -->
-### Dependencies
-<!--- List any dependencies that are required for this change. -->
+## Summary
 
-### Type of change
-<!--- Please delete options that are not relevant. -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+<!-- Briefly describe what this PR changes. -->
 
-<!--- If breaking change, detail which existing functionality/s should or is expected to change -->
+**Related Task/Issue:** <!-- Notion or GitHub link, if applicable -->
 
+## Motivation & Context
 
-# How Has This Been Tested?
-<!--- Remove this section if not applicable -->
+<!-- Why is this change needed? What problem does it solve? -->
 
-<!--- Please describe the tests that you ran to verify your changes. -->
-<!--- Provide instructions so we can reproduce. -->
-<!--- Please also list any relevant details for your test configuration -->
+## Changes Made
 
-- [ ] Test A
-- [ ] Test B
+<!-- List the main changes. -->
+-
 
-**Test Configuration**:
-* Firmware version:
-* Hardware:
-* Toolchain:
-* SDK:
+## Type of Change
 
+- [ ] New feature
+- [ ] Bug fix
+- [ ] Refactoring / maintenance
+- [ ] Documentation
+- [ ] Tests
+- [ ] Infrastructure / configuration
+- [ ] Breaking change
 
-# Checklist:
-<!--- Double check the following and leave uncheck those that you haven't done or are not applicable. -->
+## Testing & Validation
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+<!-- Describe how the changes were tested or verified. -->
+
+**Tests/Checks Performed:**
+-
+
+**Results:** <!-- Passed, failed, or not tested, with explanation -->
+
+## Dependencies
+
+<!-- Related PRs, services, or required changes. Use "None" if not applicable. -->
+
+None
+
+## Impact & Rollback
+
+**Potential Impact:**
+<!-- Affected components, services, or existing functionality. -->
+
+**Rollback Plan:**
+<!-- How to revert the changes, if necessary. -->
+
+## Checklist
+
+- [ ] I have reviewed my own changes.
+- [ ] Relevant tests or validation have been performed.
+- [ ] Documentation has been updated, if applicable.
+- [ ] No credentials or sensitive information are included.
+- [ ] Breaking changes and risks are documented, if applicable.
