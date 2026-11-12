@@ -20,23 +20,38 @@ Create regular working branches from `dev`.
 
 ### Contributions and Pull Requests
 
-1. Create a working branch for the intended change.
-2. Document the purpose and expected impact.
-3. Validate affected configurations and services.
-4. Submit a pull request to `dev`.
-5. Address feedback and satisfy the applicable branch protection requirements before merging.
+1. Create a `feature/*`, `fix/*`, `docs/*`, or `chore/*` branch from `dev`.
+2. Make focused changes and perform relevant validation.
+3. Open a pull request targeting `dev` using the PR template.
+4. Request a review from an eligible team member with Write access.
+5. Address feedback and resolve review conversations.
+6. Obtain the required approval before merging.
+7. Merge after satisfying the applicable branch rules.
 
-### Branch Protection
+### Review Requirements
 
-- Contributors follow the active GitHub branch rulesets.
-- Organization admins may commit directly to `dev` when necessary.
-- Changes to `staging` and `main` require pull requests, including for organization admins.
-- Organization admins may bypass PR approval requirements where explicitly permitted.
-- Protected branches cannot be force-pushed or deleted.
+- Regular contributors require at least one approval.
+- PR authors cannot approve their own changes.
+- New commits dismiss stale approvals.
+- All review conversations must be resolved before merging.
+- Commons reviews are handled by `network-hub-infrastructure`.
+- Required automated checks will be introduced separately when CI is configured.
+
+### Branch Protection and Owner Exceptions
+
+- `dev`, `staging`, and `main` cannot be deleted or force-pushed.
+- Regular contributors must use pull requests and obtain approval.
+- Organization Owners may bypass PR requirements on `dev` when necessary.
+- Changes to `staging` and `main` require pull requests, including for Owners.
+- Organization Owners may bypass required approvals on release PRs.
+- Any bypass should include a documented reason and validation performed.
 
 ### Release Promotion and Hotfixes
 
-Promote validated changes through `dev` → `staging` → `main` using pull requests.
+- Regular development: working branch → `dev`.
+- Release candidates: `dev` → `staging`.
+- Approved releases: `staging` → `main`.
+- Production hotfixes follow the approved release process and must be propagated back to active development branches.
 
 For urgent production fixes, create `hotfix/*` from the verified production baseline, validate the correction, and merge it through the required release process. Propagate the fix back into active development branches.
 
