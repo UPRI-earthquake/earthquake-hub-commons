@@ -134,7 +134,7 @@ Status: **fixed** means fixed in this branch. **Follow-up** means it needs a sep
 
 ## Validation record
 
-Run on 2026-11-24 on Windows 11 with Docker Engine 29.8.1 and Compose v5.5.1. Nginx checks used `nginx:stable` (1.30.8) and shellcheck 0.11.0 (`koalaman/shellcheck:stable`). The YAML check ran under WSL Ubuntu with PyYAML 6.0.3. CI on GitHub hasn't run yet, because the branch isn't pushed.
+Run on 2026-11-24 on Windows 11 with Docker Engine 29.8.1 and Compose v5.5.1. Nginx checks used `nginx:stable` (1.30.8) and shellcheck 0.11.0 (`koalaman/shellcheck:stable`). The YAML check ran under WSL Ubuntu with PyYAML 6.0.3. The same checks then passed in GitHub Actions (last row).
 
 | Check | Result |
 | --- | --- |
@@ -143,5 +143,6 @@ Run on 2026-11-24 on Windows 11 with Docker Engine 29.8.1 and Compose v5.5.1. Ng
 | `validate-static.sh` | Pass. LF line endings. Executable bits. `bash -n` on 18 scripts. Shellcheck: 14 deployment scripts at warning level, 4 others at error level. 3 Python files. 2 YAML files. No `.env` files, keys or tunnel secrets. |
 | Production render unchanged | `docker compose config` before and after, with the original `.env.example`, is byte-identical for both Compose files. |
 | Negative tests (throwaway copy) | Each injected fault failed its check: a variable missing from `.env.example`, a backend variable only in production, an ignored image input, an Nginx syntax error, a CRLF script, a non-executable entrypoint, a shell syntax error, a committed `.env`, a private key, and a real tunnel path. |
+| GitHub Actions CI | Pass on 2026-11-25, PR #24, commit `eb04a48`, run [45578105707](https://github.com/UPRI-earthquake/earthquake-hub-commons/actions/runs/45578105707) on `ubuntu-latest`: **Compose config** (6 s), **Nginx syntax** (7 s), **Static checks** (6 s). CI sets `CI=true`, so the YAML and shellcheck steps fail rather than skip when their tools are missing; they ran. No secrets, image pushes or server connections. |
 
-After the first CI run on GitHub, the Infrastructure team can make the jobs **Compose config**, **Nginx syntax** and **Static checks** required in the branch rulesets for `dev`, `staging` and `main`.
+The CI jobs have now run on GitHub, so the Infrastructure team can make **Compose config**, **Nginx syntax** and **Static checks** required in the branch rulesets for `dev`, `staging` and `main`.
