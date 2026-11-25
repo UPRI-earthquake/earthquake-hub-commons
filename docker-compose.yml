@@ -71,7 +71,8 @@ services:
       REACT_APP_SEIS_DEMO_URL: ${REACT_APP_SEIS_DEMO_URL:-}
       REACT_APP_VERSION: ${REACT_APP_VERSION:-}
       REACT_APP_GA_MEASUREMENT_ID: ${REACT_APP_GA_MEASUREMENT_ID}
-    image: "ghcr.io/upri-earthquake/earthquake-hub-frontend:latest"
+    # Image input: set EHUB_FRONTEND_IMAGE to a recorded image@sha256 reference to pin it (see docs/deployment-runbook.md).
+    image: "${EHUB_FRONTEND_IMAGE:-ghcr.io/upri-earthquake/earthquake-hub-frontend:latest}"
     depends_on:
       - "ehub-backend"
     expose:
@@ -240,7 +241,8 @@ services:
         condition: service_started
       upload-permissions:
         condition: service_completed_successfully
-    image: "ghcr.io/upri-earthquake/earthquake-hub-backend:latest"
+    # Image input: set EHUB_BACKEND_IMAGE to a recorded image@sha256 reference to pin it (see docs/deployment-runbook.md).
+    image: "${EHUB_BACKEND_IMAGE:-ghcr.io/upri-earthquake/earthquake-hub-backend:latest}"
     expose:
       - "5000"
     extra_hosts:
@@ -251,7 +253,8 @@ services:
 
   ringserver:
     container_name: ringserver
-    image: "ghcr.io/upri-earthquake/receiver-ringserver:latest"
+    # Image input: set EHUB_RINGSERVER_IMAGE to a recorded image@sha256 reference to pin it (see docs/deployment-runbook.md).
+    image: "${EHUB_RINGSERVER_IMAGE:-ghcr.io/upri-earthquake/receiver-ringserver:latest}"
     expose:
       - "16000"
     networks:

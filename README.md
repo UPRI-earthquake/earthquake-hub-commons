@@ -14,6 +14,14 @@ This repository integrates all the essential programs necessary for hosting a ci
 ## Deployment Testing
 Follow the instructions on Server Deployment via Docker Compose in our [documentation](https://upri-earthquake.github.io/ehub-commons).
 
+## Deployment Configuration and Validation
+- [docs/deployment-runbook.md](docs/deployment-runbook.md): prerequisites, environment variable names, image inputs, staging isolation, health checks, troubleshooting and rollback.
+- [docs/deployment-audit.md](docs/deployment-audit.md): current Compose/Nginx inventory, environment assumptions and open findings.
+- Pull requests run static CI (Compose rendering, `nginx -t`, script and secret checks); it never deploys. Run the same checks locally:
+  - `bash .github/scripts/validate-compose.sh`
+  - `bash .github/scripts/validate-nginx.sh`
+  - `bash .github/scripts/validate-static.sh`
+
 ## Email Branding Variables
 - `ehub-backend` now supports branded HTML email logo settings:
   - `EMAIL_LOGO_URL`
