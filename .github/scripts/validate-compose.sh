@@ -114,33 +114,59 @@ for file in "${COMPOSE_FILES[@]}"; do
   [[ $pinned_ok -eq 1 ]] && echo "   ok: ${file}"
 done
 
-echo "== ${TEST_FILE} gives the backend every variable that ${PROD_FILE} does"
+echo "== Backend variables: ${TEST_FILE} matches ${PROD_FILE}; each migrate service matches its backend"
 if [[ -s "$work/$PROD_FILE.json" && -s "$work/$TEST_FILE.json" ]]; then
   if py="$(find_python)"; then
     if "$py" - "$(host_path "$work/$PROD_FILE.json")" "$(host_path "$work/$TEST_FILE.json")" <<'PY'; then
 import json
 import sys
 
-PROD_SERVICE = "ehub-backend"
-TEST_SERVICE = "earthquake-hub-backend-dep-test"
+# file label -> (backend service, migrate service)
+SERVICES = {
+    "docker-compose.yml": ("ehub-backend", "ehub-backend-migrate"),
+    "docker-compose.dep-test.yml": ("earthquake-hub-backend-dep-test", "earthquake-hub-backend-migrate-dep-test"),
+}
+DB_KEYS = ("PG_HOST", "PG_PORT", "PG_DATABASE", "PG_USER", "PG_PASSWORD")
 
-with open(sys.argv[1], encoding="utf-8") as fh:
-    prod = json.load(fh)
-with open(sys.argv[2], encoding="utf-8") as fh:
-    test = json.load(fh)
+rendered = {}
+for label, path in zip(SERVICES, sys.argv[1:3]):
+    with open(path, encoding="utf-8") as fh:
+        rendered[label] = json.load(fh)
 
-try:
-    prod_env = set(prod["services"][PROD_SERVICE].get("environment") or {})
-    test_env = set(test["services"][TEST_SERVICE].get("environment") or {})
-except KeyError as err:
-    print(f"::error::service {err} not found; update the service names in validate-compose.sh")
+errors = []
+backend_env = {}
+for label, (backend, migrate) in SERVICES.items():
+    services = rendered[label]["services"]
+    missing_services = [name for name in (backend, migrate) if name not in services]
+    if missing_services:
+        errors.append(f"{label}: service(s) {', '.join(missing_services)} not found; update the names in validate-compose.sh")
+        continue
+    b_env = services[backend].get("environment") or {}
+    m_env = services[migrate].get("environment") or {}
+    backend_env[label] = b_env
+    for key in DB_KEYS:
+        if key not in b_env:
+            errors.append(f"{label}: {backend} does not set {key}")
+        elif b_env.get(key) != m_env.get(key):
+            errors.append(f"{label}: {migrate} must set {key} exactly as {backend} does")
+    if services[migrate].get("image") != services[backend].get("image"):
+        errors.append(f"{label}: {migrate} must use the same image as {backend}")
+    host = b_env.get("PG_HOST")
+    if host and host not in services:
+        errors.append(f"{label}: PG_HOST={host} is not a service in this file")
+
+if len(backend_env) == len(SERVICES):
+    prod_env, test_env = (set(env) for env in backend_env.values())
+    missing = sorted(prod_env - test_env)
+    if missing:
+        errors.append("backend variables in docker-compose.yml but not in docker-compose.dep-test.yml: " + ", ".join(missing))
+
+for error in errors:
+    print(f"::error::{error}")
+if errors:
     sys.exit(1)
-
-missing = sorted(prod_env - test_env)
-if missing:
-    print("::error::backend variables in docker-compose.yml but not in docker-compose.dep-test.yml: " + ", ".join(missing))
-    sys.exit(1)
-print(f"   ok: {len(prod_env)} production backend variables are also in the deployment-test file")
+print(f"   ok: {len(prod_env)} production backend variables are also in the deployment-test file;"
+      " each migrate service matches its backend's database settings and image")
 PY
       :
     else

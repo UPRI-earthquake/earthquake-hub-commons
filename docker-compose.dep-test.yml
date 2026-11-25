@@ -77,20 +77,14 @@ services:
     container_name: earthquake-hub-backend-dep-test
     environment: # load env vars from docker compose --env-file
       NODE_ENV: production
-      MONGO_CONNX_TYPE: ${MONGO_CONNX_TYPE}
-      MONGO_HOST: ${MONGO_HOST}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_NAME: ${MONGO_NAME}
-
-      # webpush notifications VAPID keys
-      PUBLIC_VAPID_KEY: ${PUBLIC_VAPID_KEY}
-      PRIVATE_VAPID_KEY: ${PRIVATE_VAPID_KEY}
-      WEB_PUSH_CONTACT: ${WEB_PUSH_CONTACT}
-      NOTIF_CLEANUP_ENABLED: ${NOTIF_CLEANUP_ENABLED}
-      NOTIF_CLEANUP_INTERVAL_MIN: ${NOTIF_CLEANUP_INTERVAL_MIN}
-      NOTIF_STALE_DAYS: ${NOTIF_STALE_DAYS}
-      NOTIF_FAILURE_THRESHOLD: ${NOTIF_FAILURE_THRESHOLD}
-      NOTIF_INVALID_TTL_DAYS: ${NOTIF_INVALID_TTL_DAYS}
+      # PostgreSQL (ehub-postgres-dep-test). Keep these the same as in earthquake-hub-backend-migrate-dep-test.
+      PG_HOST: ehub-postgres-dep-test
+      PG_PORT: 5432
+      PG_DATABASE: ${PG_DATABASE}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      JOB_LOCK_CLEANUP_ENABLED: ${JOB_LOCK_CLEANUP_ENABLED:-true}
+      JOB_LOCK_CLEANUP_INTERVAL_MIN: ${JOB_LOCK_CLEANUP_INTERVAL_MIN:-60}
 
       # Granular reverse-geolocation
       GEOSERVE_HOST: ${GEOSERVE_HOST}
@@ -229,8 +223,8 @@ services:
         source: ${UPLOAD_HOST_DIR:-./backend-uploads}
         target: ${UPLOAD_DIR:-/app/public/uploads}
     depends_on:
-      mongodb-dep-test:
-        condition: service_started
+      earthquake-hub-backend-migrate-dep-test:
+        condition: service_completed_successfully
       upload-permissions-dep-test:
         condition: service_completed_successfully
     # Image input: set EHUB_BACKEND_IMAGE to a recorded image@sha256 reference to pin it (see docs/deployment-runbook.md).
@@ -242,6 +236,58 @@ services:
     networks:
       app-network:
         ipv4_address: 172.21.0.3
+
+  # Applies pending database migrations, then exits; the backend starts only if it succeeds.
+  # It runs on every `up` and does nothing when the schema is current. Uses the backend image.
+  earthquake-hub-backend-migrate-dep-test:
+    container_name: earthquake-hub-backend-migrate-dep-test
+    image: "${EHUB_BACKEND_IMAGE:-ghcr.io/upri-earthquake/earthquake-hub-backend:latest}"
+    command: ["dumb-init", "npm", "run", "db:pg:migrate"]
+    environment:
+      NODE_ENV: production
+      PG_HOST: ehub-postgres-dep-test
+      PG_PORT: 5432
+      PG_DATABASE: ${PG_DATABASE}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+    depends_on:
+      ehub-postgres-dep-test:
+        condition: service_healthy
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.11 # fixed, so Docker never gives it an address another service needs
+
+  # The backend's database: PostgreSQL with PostGIS. Reachable only on app-network (no host port);
+  # use `docker exec -it ehub-postgres-dep-test psql -U <PG_USER> -d <PG_DATABASE>` for admin access.
+  ehub-postgres-dep-test:
+    container_name: ehub-postgres-dep-test
+    image: "postgis/postgis:18-3.6"
+    environment:
+      # The user and database are created only on the first start of an empty volume.
+      POSTGRES_DB: ${PG_DATABASE:?set PG_DATABASE in .env}
+      POSTGRES_USER: ${PG_USER:?set PG_USER in .env}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?set PG_PASSWORD in .env}
+    # The image's init script adds PostGIS extras on first start. Removing it leaves the
+    # backend migrations as the only source of extensions, so a rollback can drop them.
+    entrypoint: >
+      sh -c "rm -f /docker-entrypoint-initdb.d/10_postgis.sh && exec docker-entrypoint.sh postgres"
+    volumes:
+      # PostgreSQL 18+ images keep their data under /var/lib/postgresql/<major>/docker
+      - type: volume
+        source: ehub-postgres-data-dep-test
+        target: /var/lib/postgresql
+    expose:
+      - "5432"
+    healthcheck:
+      # TCP check: the temporary server used during first-start init listens on the socket only
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      app-network:
+        ipv4_address: 172.21.0.9
 
   ringserver-dep-test:
     container_name: ringserver-dep-test
@@ -262,8 +308,11 @@ services:
     user: root
     entrypoint: /app/host-configs/entrypoint.sh
 
+  # Legacy: the backend no longer uses MongoDB. Kept, off by default, only to copy the old data
+  # into PostgreSQL and as a rollback source. Start it with `--profile legacy-mongodb`.
   mongodb-dep-test:
     container_name: mongodb-dep-test
+    profiles: ["legacy-mongodb"]
     image: "mongo:5.0"
     volumes:
       - type: volume
@@ -333,6 +382,9 @@ services:
         ipv4_address: 172.21.0.7
 
 volumes:
+  ehub-postgres-data-dep-test:
+    external: true # create once: docker volume create ehub-postgres-data-dep-test
+    name: ehub-postgres-data-dep-test
   earthquake-hub-mongodb-data-dep-test:
     external: true # same volume used by other containers
     name: earthquake-hub-mongodb-data-dep-test
