@@ -1,0 +1,69 @@
+name: CI
+
+# Static validation only. These jobs never deploy, publish images, use
+# repository secrets, or connect to any server.
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+  push:
+    branches: [dev, staging, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compose:
+    name: Compose config
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Show Docker Compose version
+        run: docker compose version
+
+      - name: Render Compose files with safe fixtures
+        run: bash .github/scripts/validate-compose.sh
+
+  nginx:
+    name: Nginx syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Test Nginx configs with throwaway certificates
+        run: bash .github/scripts/validate-nginx.sh
+
+  static:
+    name: Static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # All preinstalled on ubuntu-latest. The YAML check uses PyYAML if the
+      # system Python has it, otherwise yq.
+      - name: Show tool versions
+        run: |
+          shellcheck --version
+          python3 --version
+          python3 -c 'import yaml; print("PyYAML", yaml.__version__)' || yq --version
+
+      - name: Check scripts, YAML and committed files
+        run: bash .github/scripts/validate-static.sh

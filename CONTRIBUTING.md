@@ -35,7 +35,7 @@ Create regular working branches from `dev`.
 - New commits dismiss stale approvals.
 - All review conversations must be resolved before merging.
 - Commons reviews are handled by `network-hub-infrastructure`.
-- Required automated checks will be introduced separately when CI is configured.
+- CI (`.github/workflows/ci.yml`) runs the **Compose config**, **Nginx syntax** and **Static checks** jobs on every pull request. Run them locally first; see [docs/deployment-runbook.md](docs/deployment-runbook.md#6-validation-commands).
 
 ### Branch Protection and Owner Exceptions
 
@@ -58,7 +58,8 @@ For urgent production fixes, create `hotfix/*` from the verified production base
 ## Contribution Guidelines
 
 - Assess the impact of changes on dependent services and environments.
-- Validate configurations before proposing deployment.
+- Validate configurations before proposing deployment (`bash .github/scripts/validate-compose.sh`, `validate-nginx.sh`, `validate-static.sh`).
+- When adding a variable to a Compose file, add its name to `.env.example` and, for backend variables, to both Compose files.
 - Document configuration changes and any necessary migration steps.
 - Include rollback considerations for deployment-impacting changes.
 - Never commit credentials, secrets, certificates, or sensitive operational data.
